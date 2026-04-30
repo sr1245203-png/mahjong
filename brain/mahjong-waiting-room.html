@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>碰碰胡 - 等待室</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    :root {
+      --primary: #FF6B35;
+      --primary-light: #FF8F66;
+      --secondary: #4ECDC4;
+      --bg-dark: #0D1117;
+      --bg-card: #161B22;
+      --bg-card-hover: #1C2128;
+      --text-primary: #FFFFFF;
+      --text-secondary: #8B949E;
+      --border: #30363D;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ========== 头部 ========== */
+    .header {
+      background: linear-gradient(180deg, #1a1f2e 0%, var(--bg-dark) 100%);
+      padding: 20px 16px 24px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,107,53,0.08) 0%, transparent 50%);
+      animation: rotate 20s linear infinite;
+    }
+
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .header-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .room-code {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    .room-code-value {
+      color: var(--primary-light);
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: 2px;
+    }
+
+    .header-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .header-subtitle {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    /* 分享按钮 */
+    .share-btn {
+      position: absolute;
+      right: 16px;
+      top: 20px;
+      z-index: 2;
+      padding: 6px 16px;
+      border-radius: 16px;
+      background: rgba(255,107,53,0.15);
+      border: 1px solid rgba(255,107,53,0.3);
+      color: var(--primary-light);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .share-btn:active {
+      background: rgba(255,107,53,0.3);
+      transform: scale(0.95);
+    }
+
+    /* ========== 主容器 ========== */
+    .container {
+      padding: 20px 16px 100px;
+    }
+
+    /* ========== 房间规则卡片 ========== */
+    .rules-card {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 16px 20px;
+      margin-bottom: 16px;
+      border: 1px solid var(--border);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+      font-size: 15px;
+      font-weight: 600;
+      position: relative;
+    }
+
+    .edit-rules-btn {
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255,107,53,0.15);
+      border: 1px solid rgba(255,107,53,0.3);
+      color: var(--primary-light);
+      font-size: 13px;
+      padding: 4px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .edit-rules-btn:active {
+      background: rgba(255,107,53,0.3);
+      transform: translateY(-50%) scale(0.95);
+    }
+
+    .card-header-icon {
+      font-size: 18px;
+    }
+
+    .rules-grid {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 14px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .rule-item {
+      text-align: center;
+    }
+
+    .rule-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+
+    .rule-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .rule-value.primary {
+      color: var(--primary-light);
+    }
+
+    .fan-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .fan-tag {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .fan-tag.active {
+      background: rgba(255,107,53,0.15);
+      border-color: rgba(255,107,53,0.3);
+      color: var(--text-primary);
+    }
+
+    .fan-tag-val {
+      font-weight: 600;
+      color: var(--primary-light);
+    }
+
+    /* ========== 玩家座位 ========== */
+    .seats-section {
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+      padding-left: 4px;
+    }
+
+    .seats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .seat-card {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 20px 16px;
+      border: 2px solid var(--border);
+      text-align: center;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .seat-card.filled {
+      border-color: rgba(255,107,53,0.3);
+      background: rgba(255,107,53,0.05);
+    }
+
+    .seat-card.me {
+      border-color: var(--primary);
+    }
+
+    .seat-avatar {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      margin: 0 auto 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      background: rgba(255,255,255,0.05);
+    }
+
+    .seat-card.filled .seat-avatar {
+      background: linear-gradient(135deg, rgba(255,107,53,0.2) 0%, rgba(78,205,196,0.2) 100%);
+    }
+
+    .seat-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .seat-status {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .seat-status.ready {
+      color: var(--secondary);
+    }
+
+    .seat-empty-icon {
+      font-size: 32px;
+      margin-bottom: 8px;
+      opacity: 0.3;
+    }
+
+    .seat-empty-text {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .seat-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: var(--primary);
+      color: white;
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 8px;
+      font-weight: 600;
+    }
+
+    /* ========== 底部按钮 ========== */
+    .bottom-actions {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 16px;
+      padding-bottom: calc(16px + env(safe-area-inset-bottom));
+      background: linear-gradient(180deg, transparent 0%, var(--bg-dark) 30%);
+    }
+
+    .start-btn {
+      width: 100%;
+      height: 52px;
+      border-radius: 26px;
+      background: linear-gradient(135deg, #FF6B35 0%, #FF8F66 100%);
+      border: none;
+      color: white;
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(255,107,53,0.4);
+      transition: all 0.2s;
+    }
+
+    .start-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .start-btn:not(:disabled):active {
+      transform: scale(0.98);
+    }
+
+    .quit-btn {
+      width: 100%;
+      height: 44px;
+      border-radius: 22px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: all 0.2s;
+    }
+
+    .quit-btn:active {
+      background: rgba(255,255,255,0.05);
+    }
+
+    /* ========== Toast ========== */
+    .toast {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      background: rgba(0,0,0,0.85);
+      color: white;
+      padding: 16px 32px;
+      border-radius: 12px;
+      font-size: 15px;
+      opacity: 0;
+      transition: all 0.3s;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    /* 分享弹窗 */
+    .share-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 100;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .share-overlay.show {
+      display: flex;
+    }
+
+    .share-sheet {
+      background: #1a1f2e;
+      border-radius: 20px 20px 0 0;
+      padding: 24px 16px;
+      padding-bottom: calc(24px + env(safe-area-inset-bottom));
+      width: 100%;
+      max-width: 500px;
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+
+    .share-sheet-title {
+      font-size: 16px;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .share-options {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 20px;
+    }
+
+    .share-option {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+
+    .share-option-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    .share-option-icon.wechat {
+      background: #07C160;
+    }
+
+    .share-option-icon.link {
+      background: var(--primary);
+    }
+
+    .share-option-text {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .share-link-box {
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .share-link-text {
+      font-size: 13px;
+      color: var(--text-secondary);
+      word-break: break-all;
+      flex: 1;
+      margin-right: 12px;
+    }
+
+    .copy-btn {
+      background: var(--primary);
+      border: none;
+      color: white;
+      padding: 6px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .cancel-btn {
+      width: 100%;
+      height: 48px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.05);
+      border: none;
+      color: var(--text-primary);
+      font-size: 15px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <!-- 头部 -->
+  <header class="header">
+    <button class="share-btn" onclick="showShare()">↗️ 分享</button>
+    <div class="header-content">
+      <div class="room-code">房间号：<span class="room-code-value">8825</span></div>
+      <h1 class="header-title">等待玩家加入</h1>
+      <p class="header-subtitle" id="waitStatus">已加入 1/4 人</p>
+    </div>
+  </header>
+
+    <!-- 主容器 -->
+  <main class="container">
+    <!-- 房间规则 -->
+    <div class="rules-card">
+      <div class="card-header">
+        <span class="card-header-icon">📋</span>
+        房间规则
+        <button class="edit-rules-btn" id="editRulesBtn" onclick="editRules()">修改</button>
+      </div>
+      <div class="rules-grid">
+        <div class="rule-item">
+          <div class="rule-label">初始积分</div>
+          <div class="rule-value" id="ruleScore">100</div>
+        </div>
+        <div class="rule-item">
+          <div class="rule-label">底</div>
+          <div class="rule-value" id="ruleBase">1</div>
+        </div>
+        <div class="rule-item">
+          <div class="rule-label">全场倍数</div>
+          <div class="rule-value" id="ruleMultiplier">5倍</div>
+        </div>
+        <div class="rule-item">
+          <div class="rule-label">封顶</div>
+          <div class="rule-value primary" id="ruleCeiling">500分</div>
+        </div>
+      </div>
+      <div class="fan-list" id="fanList">
+        <!-- JS动态生成 -->
+      </div>
+    </div>
+
+    <!-- 玩家座位 -->
+    <div class="seats-section">
+      <div class="section-title">玩家座位（点击空位加入机器人，点击机器人踢出）</div>
+      <div class="seats-grid" id="seatsGrid">
+        <!-- JS动态渲染 -->
+      </div>
+    </div>
+  </main>
+
+  <!-- 底部按钮 -->
+  <div class="bottom-actions">
+    <button class="start-btn" id="startBtn" disabled onclick="startGame()">
+      人齐后方可开始（1/4）
+    </button>
+    <button class="quit-btn" onclick="quitRoom()">退出房间</button>
+  </div>
+
+  <!-- 分享弹窗 -->
+  <div class="share-overlay" id="shareOverlay" onclick="closeShare(event)">
+    <div class="share-sheet" onclick="event.stopPropagation()">
+      <div class="share-sheet-title">邀请好友加入</div>
+
+      <div class="share-options">
+        <div class="share-option" onclick="shareWechat()">
+          <div class="share-option-icon wechat">💬</div>
+          <div class="share-option-text">微信</div>
+        </div>
+        <div class="share-option" onclick="copyLink()">
+          <div class="share-option-icon link">🔗</div>
+          <div class="share-option-text">复制链接</div>
+        </div>
+      </div>
+
+      <div class="share-link-box">
+        <div class="share-link-text" id="shareLink">https://pengpenghu.app/room/8825</div>
+        <button class="copy-btn" onclick="copyLink()">复制</button>
+      </div>
+
+      <button class="cancel-btn" onclick="closeShare()">取消</button>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ========== 座位数据 ==========
+    const BOT_NAMES  = ['小明','阿强','老王','大飞','阿杰','小刘','阿峰','大壮'];
+    const BOT_AVATARS = ['🐱','🐶','🦁','🐼','🐸','🦊','🐻','🐲'];
+    let botIdx = 0;  // 轮流取用机器人名字
+
+    // seat[0] = 房主（固定），seat[1~3] = null 或 {name, avatar}
+    let seats = [
+      { name: '我（Rui）', avatar: '😎', isOwner: true },
+      null, null, null
+    ];
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    // ========== 渲染座位 ==========
+    function renderSeats() {
+      const grid = document.getElementById('seatsGrid');
+      grid.innerHTML = '';
+      const positions = ['东','南','西','北'];
+
+      seats.forEach((seat, idx) => {
+        const card = document.createElement('div');
+
+        if (seat) {
+          // 已有人（房主或机器人）
+          let cls = 'seat-card filled';
+          if (seat.isOwner) cls += ' me';
+          card.className = cls;
+
+          let badge = '';
+          if (seat.isOwner) badge = '<div class="seat-badge">房主</div>';
+
+          card.innerHTML = `
+            ${badge}
+            <div class="seat-avatar">${seat.avatar}</div>
+            <div class="seat-name">${seat.name}</div>
+            <div class="seat-status ready">✅ 已准备</div>
+          `;
+          // 点击机器人座位 → 踢出
+          if (!seat.isOwner) {
+            card.onclick = () => kickBot(idx);
+            card.style.cursor = 'pointer';
+          }
+        } else {
+          // 空位 → 点击加入机器人
+          card.className = 'seat-card';
+          card.innerHTML = `
+            <div class="seat-avatar"><span class="seat-empty-icon">+</span></div>
+            <div class="seat-empty-text">点击加入机器人</div>
+          `;
+          card.onclick = () => addBot(idx);
+        }
+
+        grid.appendChild(card);
+      });
+
+      // 更新人数显示和开始按钮
+      const count = seats.filter(s => s !== null).length;
+      document.getElementById('waitStatus').textContent = `已加入 ${count}/4 人`;
+
+      const startBtn = document.getElementById('startBtn');
+      if (count >= 4) {
+        startBtn.disabled = false;
+        startBtn.textContent = '🎲 开始游戏';
+      } else {
+        startBtn.disabled = true;
+        startBtn.textContent = `人齐后方可开始（${count}/4）`;
+      }
+
+      // 有人加入后隐藏修改按钮
+      const editBtn = document.getElementById('editRulesBtn');
+      editBtn.style.display = count > 1 ? 'none' : 'block';
+    }
+
+    // ========== 加入机器人 ==========
+    function addBot(idx) {
+      if (seats[idx]) return;
+      const name   = BOT_NAMES[botIdx % BOT_NAMES.length];
+      const avatar = BOT_AVATARS[botIdx % BOT_AVATARS.length];
+      botIdx++;
+      seats[idx] = { name, avatar, isOwner: false };
+      renderSeats();
+      showToast(`已加入：${name}`);
+    }
+
+    // ========== 踢出机器人 ==========
+    function kickBot(idx) {
+      if (!seats[idx] || seats[idx].isOwner) return;
+      const name = seats[idx].name;
+      seats[idx] = null;
+      renderSeats();
+      showToast(`已踢出：${name}`);
+    }
+
+    // ========== 读取URL参数，显示房间规则 ==========
+    function loadRoomRules() {
+      const params = new URLSearchParams(window.location.search);
+
+      const score         = params.get('score')         || '100';
+      const ceilingNormal = params.get('ceilingNormal') || '50';
+      const base          = params.get('base')          || '1';
+      const multiplier    = params.get('multiplier')    || '5';
+
+      const pengpeng  = params.get('pengpeng')  || '0';
+      const qingyise  = params.get('qingyise')  || '0';
+      const hunyise   = params.get('hunyise')   || '0';
+      const gangkai   = params.get('gangkai')   || '0';
+      const qixiaodui = params.get('qixiaodui') || '0';
+      const kaibao    = params.get('kaibao')    || '0';
+      const dawuhua   = params.get('dawuhua')   || '0';
+      const xiaowuhua = params.get('xiaowuhua') || '0';
+      const tianhu    = params.get('tianhu')    || '0';
+      const dihu      = params.get('dihu')      || '0';
+      const huahu     = params.get('huahu')     || '0';
+
+      document.getElementById('ruleScore').textContent    = score;
+      document.getElementById('ruleCeiling').textContent  = ceilingNormal + '分';
+      document.getElementById('ruleBase').textContent    = base;
+      document.getElementById('ruleMultiplier').textContent = multiplier + '倍';
+
+      const fanList = document.getElementById('fanList');
+      fanList.innerHTML = '';
+      const fans = [
+        { name: '碰碰胡', val: pengpeng,  unit: '倍' },
+        { name: '清一色', val: qingyise,  unit: '倍' },
+        { name: '混一色', val: hunyise,   unit: '倍' },
+        { name: '杠开',   val: gangkai,   unit: '倍' },
+        { name: '七小对', val: qixiaodui, unit: '倍' },
+        { name: '开宝',   val: kaibao,    unit: '倍' },
+        { name: '大无花', val: dawuhua,   unit: '分' },
+        { name: '小无花', val: xiaowuhua, unit: '分' },
+        { name: '天胡',   val: tianhu,    unit: '分' },
+        { name: '地胡',   val: dihu,      unit: '分' },
+        { name: '花胡',   val: huahu,     unit: '分' },
+      ];
+      fans.forEach(f => {
+        if (parseInt(f.val) > 0) {
+          const tag = document.createElement('div');
+          tag.className = 'fan-tag active';
+          tag.innerHTML = `<span>${f.name}</span><span class="fan-tag-val">${f.val}${f.unit}</span>`;
+          fanList.appendChild(tag);
+        }
+      });
+    }
+
+    // ========== 修改规则（仅房主可用）==========
+    function editRules() {
+      const count = seats.filter(s => s !== null).length;
+      if (count > 1) {
+        showToast('已有其他玩家加入，不可修改规则');
+        return;
+      }
+      showToast('正在返回修改规则...');
+      setTimeout(() => {
+        window.location.href = 'mahjong-room-create.html';
+      }, 1000);
+    }
+
+    function showShare() {
+      document.getElementById('shareOverlay').classList.add('show');
+    }
+
+    function closeShare(event) {
+      if (!event || event.target.classList.contains('share-overlay')) {
+        document.getElementById('shareOverlay').classList.remove('show');
+      }
+    }
+
+    function shareWechat() {
+      showToast('请通过微信分享给好友');
+      setTimeout(() => closeShare(), 1500);
+    }
+
+    function copyLink() {
+      const link = document.getElementById('shareLink').textContent;
+      if (navigator.clipboard) navigator.clipboard.writeText(link);
+      showToast('链接已复制！');
+      setTimeout(() => closeShare(), 1500);
+    }
+
+    function startGame() {
+      // 把当前URL参数 + 座位玩家信息传给游戏记分页面
+      const params = new URLSearchParams(window.location.search);
+      const names  = seats.filter(s => s).map(s => s.name);
+      const avatars = seats.filter(s => s).map(s => s.avatar);
+      params.set('names', names.join(','));
+      params.set('avatars', avatars.join(','));
+      showToast('游戏开始！');
+      setTimeout(() => {
+        window.location.href = 'mahjong-game-score.html?' + params.toString();
+      }, 1000);
+    }
+
+    function quitRoom() {
+      if (confirm('确定要退出房间吗？')) {
+        showToast('已退出房间');
+      }
+    }
+
+    // ========== 页面加载 ==========
+    document.addEventListener('DOMContentLoaded', () => {
+      loadRoomRules();
+      renderSeats();
+    });
+  </script>
+</body>
+</html>

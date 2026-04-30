@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>上海敲麻 - 创建房间</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    :root {
+      --primary: #FF6B35;
+      --primary-light: #FF8F66;
+      --secondary: #4ECDC4;
+      --bg-dark: #0D1117;
+      --bg-card: #161B22;
+      --text-primary: #FFFFFF;
+      --text-secondary: #8B949E;
+      --border: #30363D;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ========== 头部 ========== */
+    .header {
+      background: linear-gradient(180deg, #1a1f2e 0%, var(--bg-dark) 100%);
+      padding: 20px 16px 30px;
+      position: relative;
+      overflow: hidden;
+      text-align: center;
+    }
+
+    .header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,107,53,0.1) 0%, transparent 50%);
+      animation: rotate 20s linear infinite;
+    }
+
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .header-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .header-title {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .header-subtitle {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-top: 6px;
+    }
+
+    /* ========== 主容器 ========== */
+    .container {
+      padding: 20px 16px 100px;
+      max-width: 100%;
+    }
+
+    /* ========== 卡片 ========== */
+    .card {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .card-header-icon {
+      font-size: 20px;
+    }
+
+    /* ========== 初始积分 ========== */
+    .score-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+    }
+
+    .score-label {
+      font-size: 15px;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .score-label-icon {
+      font-size: 18px;
+    }
+
+    .score-hint {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    /* 步进器 */
+    .stepper {
+      display: flex;
+      align-items: center;
+      background: rgba(255,255,255,0.05);
+      border-radius: 22px;
+      padding: 4px;
+    }
+
+    .stepper-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .stepper-btn:active {
+      background: rgba(255,107,53,0.2);
+      transform: scale(0.9);
+    }
+
+    .stepper-btn.minus {
+      color: var(--secondary);
+    }
+
+    .stepper-btn.plus {
+      color: var(--primary);
+    }
+
+    .stepper-value {
+      min-width: 70px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    /* ========== 番型设置 ========== */
+    .fan-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .fan-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .fan-row:last-child {
+      border-bottom: none;
+    }
+
+    .fan-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .fan-icon {
+      font-size: 22px;
+      width: 32px;
+      text-align: center;
+    }
+
+    .fan-name {
+      font-size: 15px;
+      color: var(--text-primary);
+    }
+
+    /* 番数加减器 */
+    .fan-stepper {
+      display: flex;
+      align-items: center;
+      background: rgba(255,255,255,0.05);
+      border-radius: 16px;
+      padding: 2px;
+    }
+
+    .fan-stepper-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .fan-stepper-btn:active {
+      background: rgba(255,107,53,0.2);
+      transform: scale(0.9);
+    }
+
+    .fan-stepper-btn.minus {
+      color: var(--secondary);
+    }
+
+    .fan-stepper-btn.plus {
+      color: var(--primary);
+    }
+
+    .fan-stepper-value {
+      min-width: 32px;
+      text-align: center;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    /* 可手动输入的牌型数值框 */
+    .fan-stepper-input {
+      width: 48px;
+      text-align: center;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--primary-light);
+      background: rgba(255,107,53,0.10);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2px 4px;
+      outline: none;
+    }
+    .fan-stepper-input:focus {
+      border-color: var(--primary);
+      background: rgba(255,107,53,0.18);
+    }
+
+    /* ========== 底设置 ========== */
+    .base-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .base-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .base-label-icon {
+      font-size: 22px;
+    }
+
+    .base-text {
+      font-size: 15px;
+      color: var(--text-primary);
+    }
+
+    .base-sub {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* ========== 全场倍数设置 ========== */
+    .multiplier-section {
+      padding: 14px 0;
+    }
+
+    .multiplier-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .multiplier-label-icon {
+      font-size: 22px;
+    }
+
+    .multiplier-text {
+      font-size: 15px;
+      color: var(--text-primary);
+    }
+
+    .multiplier-options {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .multiplier-btn {
+      flex: 1;
+      min-width: 60px;
+      height: 40px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .multiplier-btn.active {
+      background: rgba(255,107,53,0.2);
+      border-color: var(--primary);
+      color: var(--primary-light);
+    }
+
+    .multiplier-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* ========== 封顶设置 ========== */
+    .ceiling-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 0;
+    }
+
+    .ceiling-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ceiling-label-icon {
+      font-size: 22px;
+    }
+
+    .ceiling-text {
+      font-size: 15px;
+      color: var(--text-primary);
+    }
+
+    .ceiling-sub {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .ceiling-input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ceiling-input {
+      width: 60px;
+      height: 40px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--primary);
+      outline: none;
+    }
+
+    .ceiling-input:focus {
+      border-color: var(--primary);
+    }
+
+    .ceiling-unit {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    /* ========== 底部按钮 ========== */
+    .bottom-actions {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 16px;
+      padding-bottom: calc(16px + env(safe-area-inset-bottom));
+      background: linear-gradient(180deg, transparent 0%, var(--bg-dark) 30%);
+    }
+
+    .create-btn {
+      width: 100%;
+      height: 52px;
+      border-radius: 26px;
+      background: linear-gradient(135deg, #FF6B35 0%, #FF8F66 100%);
+      border: none;
+      color: white;
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(255,107,53,0.4);
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .create-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    .create-btn:active {
+      transform: scale(0.98);
+      box-shadow: 0 2px 10px rgba(255,107,53,0.3);
+    }
+
+    .create-btn:active::before {
+      left: 100%;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      background: rgba(0,0,0,0.85);
+      color: white;
+      padding: 16px 32px;
+      border-radius: 12px;
+      font-size: 15px;
+      opacity: 0;
+      transition: all 0.3s;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+  </style>
+</head>
+<body>
+  <!-- 头部 -->
+  <header class="header">
+    <div class="header-content">
+      <h1 class="header-title">🀄 创建房间</h1>
+      <p class="header-subtitle">上海敲麻-好友局</p>
+    </div>
+  </header>
+
+  <!-- 主容器 -->
+  <main class="container">
+    <!-- 初始积分 -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-header-icon">🏆</span>
+        初始积分
+      </div>
+
+      <div class="score-row">
+        <div>
+          <div class="score-label">
+            <span class="score-label-icon">💰</span>
+            每人初始积分
+          </div>
+          <div class="score-hint">最终得分可为负数</div>
+        </div>
+        <div class="stepper">
+          <button class="stepper-btn minus" onclick="changeScore(-10)">−</button>
+          <span class="stepper-value" id="scoreValue">100</span>
+          <button class="stepper-btn plus" onclick="changeScore(10)">+</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 底设置 -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-header-icon">🎯</span>
+        底
+      </div>
+
+      <div class="base-row">
+        <div class="base-label">
+          <span class="base-label-icon">📌</span>
+          <div>
+            <div class="base-text">底数</div>
+            <div class="base-sub">花数 + 底 = 基础分</div>
+          </div>
+        </div>
+        <div class="stepper">
+          <button class="stepper-btn minus" onclick="changeBase(-1)">−</button>
+          <span class="stepper-value" id="baseValue">1</span>
+          <button class="stepper-btn plus" onclick="changeBase(1)">+</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 全场倍数 -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-header-icon">✖️</span>
+        全场倍数
+      </div>
+
+      <div class="multiplier-section">
+        <div class="multiplier-options" id="multiplierOptions">
+          <button class="multiplier-btn" data-value="1" onclick="setMultiplier(1)">1倍</button>
+          <button class="multiplier-btn" data-value="2" onclick="setMultiplier(2)">2倍</button>
+          <button class="multiplier-btn active" data-value="5" onclick="setMultiplier(5)">5倍</button>
+          <button class="multiplier-btn" data-value="10" onclick="setMultiplier(10)">10倍</button>
+          <button class="multiplier-btn" data-value="20" onclick="setMultiplier(20)">20倍</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 牌型设置 -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-header-icon">🎴</span>
+        牌型设置
+      </div>
+
+      <!-- 倍数牌型 -->
+      <div style="font-size:13px; color:var(--primary-light); padding:12px 0 4px; font-weight:600;">倍数牌型（可调倍数）</div>
+      <div style="font-size:12px; color:var(--text-secondary); padding:0 0 8px;">0倍即不带这个牌型</div>
+
+      <div class="fan-row">
+        <div class="fan-info">
+          <span class="fan-icon">💎</span>
+          <span class="fan-name">碰碰胡</span>
+        </div>
+        <div class="fan-stepper">
+          <button class="fan-stepper-btn minus" onclick="changeFan('pengpeng', -1, this)">−</button>
+          <input class="fan-stepper-input" id="fan-pengpeng" value="2" oninput="onFanInput('pengpeng', this)">
+          <span style="font-size:12px; color:var(--text-secondary); margin-left:2px;">倍</span>
+          <button class="fan-stepper-btn plus" onclick="changeFan('pengpeng', 1, this)">+</button>
+        </div>
+      </div>
+
+      <div class="fan-row">
+        <div class="fan-info">
+          <span class="fan-icon">👑</span>
+          <span class="fan-name">清一色</span>
+        </div>
+        <div class="fan-stepper">
+          <button class="fan-stepper-btn minus" onclick="changeFan('qingyise', -1, this)">−</button>
+          <input class="fan-stepper-input" id="fan-qingyise" value="3" oninput="onFanInput('qingyise', this)">
+          <span style="font-size:12px; color:var(--text-secondary); margin-left:2px;">倍</span>
+          <button class="fan-stepper-btn plus" onclick="changeFan('qingyise', 1, this)">+</button>
+        </div>
+      </div>
+
+      <div class="fan-row">
+        <div class="fan-info">
+          <span class="fan-icon">🌈</span>
+          <span class="fan-name">混一色</span>
+        </div>
+        <div class="fan-stepper">
+          <button class="fan-stepper-btn minus" onclick="changeFan('hunyise', -1, this)">−</button>
+          <input class="fan-stepper-input" id="fan-hunyise" value="2" oninput="onFanInput('hunyise', this)">
+          <span style="font-size:12px; color:var(--text-secondary); margin-left:2px;">倍</span>
+          <button class="fan-stepper-btn plus" onclick="changeFan('hunyise', 1, this)">+</button>
+        </div>
+      </div>
+
+      <div class="fan-row">
+        <div class="fan-info">
+          <span class="fan-icon">🎲</span>
+          <span class="fan-name">杠开</span>
+        </div>
+        <div class="fan-stepper">
+          <button class="fan-stepper-btn minus" onclick="changeFan('gangkai', -1, this)">−</button>
+          <input class="fan-stepper-input" id="fan-gangkai" value="2" oninput="onFanInput('gangkai', this)">
+          <span style="font-size:12px; color:var(--text-secondary); margin-left:2px;">倍</span>
+          <button class="fan-stepper-btn plus" onclick="changeFan('gangkai', 1, this)">+</button>
+        </div>
+      </div>
+
+      <div class="fan-row">
+        <div class="fan-info">
+          <span class="fan-icon">🌟</span>
+          <span class="fan-name">七小对</span>
+        </div>
+        <div class="fan-stepper">
+          <button class="fan-stepper-btn minus" onclick="changeFan('qixiaodui', -1, this)">−</button>
+          <input class="fan-stepper-input" id="fan-qixiaodui" value="2" oninput="onFanInput('qixiaodui', this)">
+          <span style="font-size:12px; color:var(--text-secondary); margin-left:2px;">倍</span>
+          <button class="fan-stepper-btn plus" onclick="changeFan('qixiaodui', 1, this)">+</button>
+        </div>
+      </div>
+
+      <div class="fan-row">
+        <div class="fan-info">
+          <span class="fan-icon">💎</span>
+          <span class="fan-name">开宝</span>
+        </div>
+        <div class="fan-stepper">
+          <button class="fan-stepper-btn minus" onclick="changeFan('kaibao', -1, this)">−</button>
+          <input class="fan-stepper-input" id="fan-kaibao" value="2" oninput="onFanInput('kaibao', this)">
+          <span style="font-size:12px; color:var(--text-secondary); margin-left:2px;">倍</span>
+          <button class="fan-stepper-btn plus" onclick="changeFan('kaibao', 1, this)">+</button>
+        </div>
+      </div>
+
+      <!-- 固定分数牌型 -->
+      <div style="font-size:13px; color:var(--primary-light); padding:16px 0 8px; font-weight:600;">固定分数牌型（可调分数，不乘倍数）</div>
+
+      <div class="fan-row">
+        <div class="fan-info">
+          <span class="fan-icon">🌸</span>
+          <span class="fan-name">大无花</span>
+        </div>
+        <div class="fan-stepper">
+          <button class="fan-stepper-btn minus" onclick="changeFan('dawuhua', -1, this)">−</button>
+          <input class="fan-stepper-input" id="fan-dawuhua" value="22" oninput="onFanInput('dawuhua', this)">
+          <span style="font-size:12px; color:var(--text-secondary); margin-left:2px;">分</span>
+          <button class="fan-stepper-btn plus" onclick="changeFan('dawuhua', 1, this)">+</button>
+        </div>
+      </div>
+
+      <div class="fan-row">
+        <div class="fan-info">
+          <span class="fan-icon">🏵️</span>
+          <span class="fan-name">小无花</span>
+        </div>
+        <div class="fan-stepper">
+          <button class="fan-stepper-btn minus" onclick="changeFan('xiaowuhua', -1, this)">−</button>
+          <input class="fan-stepper-input" id="fan-xiaowuhua" value="11" oninput="onFanInput('xiaowuhua', this)">
+          <span style="font-size:12px; color:var(--text-secondary); margin-left:2px;">分</span>
+          <button class="fan-stepper-btn plus" onclick="changeFan('xiaowuhua', 1, this)">+</button>
+        </div>
+      </div>
+
+      <div class="fan-row">
+        <div class="fan-info">
+          <span class="fan-icon">⭐</span>
+          <span class="fan-name">天胡</span>
+        </div>
+        <div class="fan-stepper">
+          <button class="fan-stepper-btn minus" onclick="changeFan('tianhu', -1, this)">−</button>
+          <input class="fan-stepper-input" id="fan-tianhu" value="75" oninput="onFanInput('tianhu', this)">
+          <span style="font-size:12px; color:var(--text-secondary); margin-left:2px;">分</span>
+          <button class="fan-stepper-btn plus" onclick="changeFan('tianhu', 1, this)">+</button>
+        </div>
+      </div>
+
+      <div class="fan-row">
+        <div class="fan-info">
+          <span class="fan-icon">🌙</span>
+          <span class="fan-name">地胡</span>
+        </div>
+        <div class="fan-stepper">
+          <button class="fan-stepper-btn minus" onclick="changeFan('dihu', -1, this)">−</button>
+          <input class="fan-stepper-input" id="fan-dihu" value="75" oninput="onFanInput('dihu', this)">
+          <span style="font-size:12px; color:var(--text-secondary); margin-left:2px;">分</span>
+          <button class="fan-stepper-btn plus" onclick="changeFan('dihu', 1, this)">+</button>
+        </div>
+      </div>
+
+      <div class="fan-row">
+        <div class="fan-info">
+          <span class="fan-icon">🎀</span>
+          <span class="fan-name">花胡</span>
+        </div>
+        <div class="fan-stepper">
+          <button class="fan-stepper-btn minus" onclick="changeFan('huahu', -1, this)">−</button>
+          <input class="fan-stepper-input" id="fan-huahu" value="75" oninput="onFanInput('huahu', this)">
+          <span style="font-size:12px; color:var(--text-secondary); margin-left:2px;">分</span>
+          <button class="fan-stepper-btn plus" onclick="changeFan('huahu', 1, this)">+</button>
+        </div>
+      </div>
+
+      <!-- 封顶设置 -->
+      <div style="font-size:13px; color:var(--primary-light); padding:16px 0 4px; font-weight:600;">封顶设置（保护机制：每家扣分上限）</div>
+      <div style="font-size:12px; color:var(--text-secondary); padding:0 0 12px; line-height:1.6;">
+        普通局设置封顶分数后，开宝局封顶自动为普通局×开宝倍数
+      </div>
+
+      <!-- 普通局封顶 -->
+      <div class="ceiling-row">
+        <div class="ceiling-label">
+          <span class="ceiling-label-icon">🏔️</span>
+          <div>
+            <div class="ceiling-text">普通局封顶</div>
+            <div class="ceiling-sub">每家扣分上限</div>
+          </div>
+        </div>
+        <div class="ceiling-input-wrap">
+          <input type="number" class="ceiling-input" id="ceilingNormal" value="50" min="0" step="10">
+          <span class="ceiling-unit">分</span>
+        </div>
+      </div>
+
+      <!-- 开宝局封顶倍数 -->
+      <div class="ceiling-row">
+        <div class="ceiling-label">
+          <span class="ceiling-label-icon">💎</span>
+          <div>
+            <div class="ceiling-text">开宝局封顶倍数</div>
+            <div class="ceiling-sub">开宝局封顶 = 普通局 × 倍数</div>
+          </div>
+        </div>
+        <div class="ceiling-input-wrap">
+          <input type="number" class="ceiling-input" id="ceilingKaibao" value="2" min="1" step="1">
+          <span class="ceiling-unit">倍</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 底部按钮 -->
+  <div class="bottom-actions">
+    <button class="create-btn" onclick="createRoom()">
+      🎲 创建房间
+    </button>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // 状态
+    let state = {
+      score: 100,
+      base: 1,           // 底
+      multiplier: 5,       // 全场倍数（默认5倍）
+      fans: {
+        pengpeng: 2,      // 碰碰胡 2倍
+        qingyise: 3,      // 清一色 3倍
+        hunyise: 2,        // 混一色 2倍
+        gangkai: 2,        // 杠开 2倍
+        qixiaodui: 2,      // 七小对 2倍
+        kaibao: 2,         // 开宝 2倍
+        dawuhua: 22,       // 大无花 22分
+        xiaowuhua: 11,     // 小无花 11分
+        tianhu: 75,        // 天胡 75分
+        dihu: 75,          // 地胡 75分
+        huahu: 75,         // 花胡 75分
+      },
+      ceilingNormal: 50,    // 普通局封顶
+      ceilingKaibao: 2,     // 开宝局封顶倍数
+    };
+
+    // 显示提示
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    // 积分调整
+    function changeScore(delta) {
+      state.score += delta;
+      document.getElementById('scoreValue').textContent = state.score;
+    }
+
+    // 底调整
+    function changeBase(delta) {
+      state.base += delta;
+      if (state.base < 1) state.base = 1;
+      document.getElementById('baseValue').textContent = state.base;
+    }
+
+    // 全场倍数选择
+    function setMultiplier(val) {
+      state.multiplier = val;
+      document.querySelectorAll('.multiplier-btn').forEach(btn => {
+        btn.classList.toggle('active', parseInt(btn.dataset.value) === val);
+      });
+    }
+
+    // 牌型加减（倍数或分数）
+    function changeFan(fanType, delta) {
+      const el = document.getElementById('fan-' + fanType);
+      let val = parseInt(el.value) || 0;
+      val = Math.max(0, Math.min(999, val + delta));
+      el.value = val;
+      state.fans[fanType] = val;
+    }
+
+    // 手动输入牌型数值
+    function onFanInput(fanType, inputEl) {
+      let val = parseInt(inputEl.value) || 0;
+      val = Math.max(0, Math.min(999, val));
+      inputEl.value = val;
+      state.fans[fanType] = val;
+    }
+
+    // 创建房间
+    function createRoom() {
+      // 获取封顶值
+      const ceilingNormal = parseInt(document.getElementById('ceilingNormal').value) || 0;
+      const ceilingKaibao = parseInt(document.getElementById('ceilingKaibao').value) || 2;
+      state.ceilingNormal = ceilingNormal;
+      state.ceilingKaibao = ceilingKaibao;
+
+      // 检查是否有牌型（倍数>0 或 分数>0）
+      const hasFan = Object.values(state.fans).some(v => v > 0);
+      if (!hasFan) {
+        showToast('请至少开启一种牌型');
+        return;
+      }
+
+      // 构建参数传递给等待室
+      const params = new URLSearchParams({
+        score: state.score,
+        base: state.base,
+        multiplier: state.multiplier,
+        ceilingNormal: ceilingNormal,
+        ceilingKaibao: ceilingKaibao,
+        pengpeng: document.getElementById('fan-pengpeng').value,
+        qingyise: document.getElementById('fan-qingyise').value,
+        hunyise: document.getElementById('fan-hunyise').value,
+        gangkai: document.getElementById('fan-gangkai').value,
+        qixiaodui: document.getElementById('fan-qixiaodui').value,
+        kaibao: document.getElementById('fan-kaibao').value,
+        dawuhua: document.getElementById('fan-dawuhua').value,
+        xiaowuhua: document.getElementById('fan-xiaowuhua').value,
+        tianhu: document.getElementById('fan-tianhu').value,
+        dihu: document.getElementById('fan-dihu').value,
+        huahu: document.getElementById('fan-huahu').value,
+      });
+
+      showToast('房间创建成功！');
+      setTimeout(() => {
+        window.location.href = 'mahjong-waiting-room.html?' + params.toString();
+      }, 1000);
+    }
+  </script>
+</body>
+</html>

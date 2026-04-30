@@ -1,0 +1,82 @@
+<!--
+  自定义日期选择器
+  年、月、日三个按钮，点击弹出底部列表选择
+-->
+<view class="date-picker">
+  <!-- 三个选择按钮 -->
+  <view class="picker-buttons">
+    <view class="picker-btn" bindtap="onYearTap">
+      <text class="picker-btn-text">{{selectedYear}}年</text>
+    </view>
+    <view class="picker-btn" bindtap="onMonthTap">
+      <text class="picker-btn-text">{{selectedMonth}}月</text>
+    </view>
+    <view class="picker-btn" bindtap="onDayTap">
+      <text class="picker-btn-text">{{selectedDay}}日</text>
+    </view>
+  </view>
+
+  <!-- 遮罩层 -->
+  <view 
+    class="mask {{activePicker ? 'mask-show' : ''}}" 
+    bindtap="onMaskTap"
+    hidden="{{!activePicker}}"
+  >
+    <!-- 年份选择列表 -->
+    <view 
+      class="picker-list {{showYearPicker ? 'picker-list-show' : ''}}" 
+      catchtap="onPreventBubble"
+    >
+      <view class="picker-list-title">选择年份</view>
+      <scroll-view class="picker-scroll" scroll-y>
+        <view 
+          wx:for="{{years}}" 
+          wx:key="*this"
+          class="picker-item {{item === selectedYear ? 'picker-item-selected' : ''}}"
+          bindtap="onSelectYear"
+          data-year="{{item}}"
+        >
+          <text>{{item}}年</text>
+        </view>
+      </scroll-view>
+    </view>
+
+    <!-- 月份选择列表 -->
+    <view 
+      class="picker-list {{showMonthPicker ? 'picker-list-show' : ''}}" 
+      catchtap="onPreventBubble"
+    >
+      <view class="picker-list-title">选择月份</view>
+      <scroll-view class="picker-scroll" scroll-y>
+        <view 
+          wx:for="{{months}}" 
+          wx:key="*this"
+          class="picker-item {{item === selectedMonth ? 'picker-item-selected' : ''}}"
+          bindtap="onSelectMonth"
+          data-month="{{item}}"
+        >
+          <text>{{item}}月</text>
+        </view>
+      </scroll-view>
+    </view>
+
+    <!-- 日期选择列表 -->
+    <view 
+      class="picker-list {{showDayPicker ? 'picker-list-show' : ''}}" 
+      catchtap="onPreventBubble"
+    >
+      <view class="picker-list-title">选择日期</view>
+      <scroll-view class="picker-scroll" scroll-y>
+        <view 
+          wx:for="{{days}}" 
+          wx:key="*this"
+          class="picker-item {{item === selectedDay ? 'picker-item-selected' : ''}}"
+          bindtap="onSelectDay"
+          data-day="{{item}}"
+        >
+          <text>{{item}}日</text>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+</view>

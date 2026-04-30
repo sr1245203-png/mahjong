@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>上海敲麻 - 游戏记分</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    :root {
+      --primary: #FF6B35;
+      --primary-light: #FF8F66;
+      --secondary: #4ECDC4;
+      --danger: #FF6B6B;
+      --success: #51CF66;
+      --bg-dark: #0D1117;
+      --bg-card: #161B22;
+      --text-primary: #FFFFFF;
+      --text-secondary: #8B949E;
+      --border: #30363D;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding-bottom: calc(180px + env(safe-area-inset-bottom));
+    }
+
+    /* ========== 头部 ========== */
+    .header {
+      background: linear-gradient(180deg, #1a1f2e 0%, var(--bg-dark) 100%);
+      padding: 16px 16px 12px;
+      text-align: center;
+    }
+
+    .header-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .header-subtitle {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .round-info {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,107,53,0.15);
+      border: 1px solid rgba(255,107,53,0.3);
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      color: var(--primary-light);
+    }
+
+    /* ========== 规则摘要栏 ========== */
+    .rules-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 8px 16px;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text-secondary);
+      flex-wrap: wrap;
+    }
+
+    .rules-bar .rule-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .rules-bar .rule-val {
+      color: var(--primary-light);
+      font-weight: 600;
+    }
+
+    /* ========== 语音按钮 ========== */
+    .voice-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 16px;
+      gap: 10px;
+    }
+
+    .voice-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 18px;
+      border-radius: 20px;
+      background: rgba(78,205,196,0.12);
+      border: 1px solid rgba(78,205,196,0.4);
+      color: var(--secondary);
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+    }
+
+    .voice-btn:active,
+    .voice-btn.listening {
+      background: rgba(78,205,196,0.3);
+      border-color: var(--secondary);
+      box-shadow: 0 0 12px rgba(78,205,196,0.4);
+    }
+
+    .voice-btn .mic-icon {
+      font-size: 18px;
+    }
+
+    .voice-status {
+      font-size: 12px;
+      color: var(--text-secondary);
+      min-height: 18px;
+      text-align: center;
+    }
+
+    /* ========== 玩家积分 ========== */
+    .players-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      padding: 12px 16px;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .player-score-card {
+      text-align: center;
+      padding: 10px 2px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.03);
+      border: 2px solid transparent;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .player-score-card.selected-winner {
+      border-color: var(--primary);
+      background: rgba(255,107,53,0.1);
+    }
+
+    .player-score-card.selected-dianpao {
+      border-color: var(--danger);
+      background: rgba(255,107,107,0.1);
+    }
+
+    .dealer-badge {
+      position: absolute;
+      top: -6px;
+      right: -4px;
+      background: var(--primary);
+      color: white;
+      font-size: 9px;
+      padding: 1px 5px;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+
+    .player-position {
+      font-size: 10px;
+      color: var(--text-secondary);
+      margin-bottom: 2px;
+    }
+
+    .player-avatar {
+      font-size: 22px;
+      margin-bottom: 2px;
+    }
+
+    .player-name {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .player-score {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .player-score.positive { color: var(--success); }
+    .player-score.negative { color: var(--danger); }
+    .player-score.zero { color: var(--text-primary); }
+
+    /* ========== 主体区域 ========== */
+    .main-section {
+      padding: 16px;
+    }
+
+    .section-label {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .hint-text {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+      min-height: 18px;
+    }
+
+    /* ========== 花数输入 ========== */
+    .flower-section {
+      margin-bottom: 16px;
+      padding: 12px;
+      background: var(--bg-card);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .flower-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .flower-label {
+      font-size: 14px;
+      color: var(--text-primary);
+    }
+
+    .flower-stepper {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .flower-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .flower-btn:active {
+      background: rgba(255,107,53,0.2);
+    }
+
+    .flower-value {
+      font-size: 20px;
+      font-weight: 700;
+      min-width: 32px;
+      text-align: center;
+    }
+
+    /* ========== 快捷按钮 ========== */
+    .quick-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .quick-btn {
+      padding: 10px 16px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .quick-btn.active {
+      background: rgba(255,107,53,0.2);
+      border-color: var(--primary);
+      color: var(--primary-light);
+    }
+
+    .quick-btn.no-dianpao {
+      border-style: dashed;
+    }
+
+    .quick-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* ========== 操作区 ========== */
+    .action-section {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 16px;
+      padding-bottom: calc(16px + env(safe-area-inset-bottom));
+      background: linear-gradient(180deg, transparent 0%, var(--bg-dark) 30%);
+    }
+
+    .selected-info {
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-bottom: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .selected-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+      font-size: 13px;
+    }
+
+    .selected-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .selected-label {
+      color: var(--text-secondary);
+    }
+
+    .selected-value {
+      color: var(--primary-light);
+      font-weight: 600;
+    }
+
+    .score-preview {
+      text-align: center;
+      padding: 8px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .score-preview.show {
+      opacity: 1;
+    }
+
+    .score-preview-text {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+
+    .score-preview-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--primary-light);
+    }
+
+    .confirm-btn {
+      width: 100%;
+      height: 48px;
+      border-radius: 24px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      border: none;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(255,107,53,0.3);
+      transition: all 0.2s;
+    }
+
+    .confirm-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .confirm-btn:not(:disabled):active {
+      transform: scale(0.98);
+    }
+
+    /* ========== 记录列表 ========== */
+    .records-section {
+      padding: 0 16px;
+    }
+
+    .records-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .records-clear {
+      font-size: 13px;
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+
+    .record-item {
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-bottom: 8px;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .record-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .record-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .record-desc {
+      font-size: 14px;
+      margin-bottom: 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .record-time {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* ========== 结束按钮 ========== */
+    .end-section {
+      padding: 16px;
+    }
+
+    .end-btn {
+      width: 100%;
+      height: 44px;
+      border-radius: 22px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .end-btn:active {
+      background: rgba(255,255,255,0.05);
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      background: rgba(0,0,0,0.85);
+      color: white;
+      padding: 16px 32px;
+      border-radius: 12px;
+      font-size: 15px;
+      opacity: 0;
+      transition: all 0.3s;
+      pointer-events: none;
+      z-index: 1000;
+      text-align: center;
+      max-width: 80vw;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .no-records {
+      text-align: center;
+      color: var(--text-secondary);
+      padding: 40px 0;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <!-- 头部 -->
+  <header class="header">
+    <h1 class="header-title">🀄 游戏进行中</h1>
+    <div class="header-subtitle">上海敲麻-好友局</div>
+    <div class="round-info">
+      <span>🎯</span>
+      <span id="roundText">第1局</span>
+    </div>
+  </header>
+
+  <!-- 规则摘要栏 -->
+  <div class="rules-bar" id="rulesBar">
+    <div class="rule-item">底：<span class="rule-val" id="ruleBase">1</span></div>
+    <div class="rule-item">全场倍数：<span class="rule-val" id="ruleMultiplier">5</span></div>
+    <div class="rule-item">普通封顶：<span class="rule-val" id="ruleCeilingNormal">50</span></div>
+    <div class="rule-item">开宝封顶：<span class="rule-val" id="ruleCeilingKaibao">100</span></div>
+  </div>
+
+  <!-- 语音录入区 -->
+  <div class="voice-bar">
+    <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()">
+      <span class="mic-icon">🎤</span>
+      <span id="voiceBtnText">语音记分</span>
+    </button>
+  </div>
+  <div class="voice-status" id="voiceStatus"></div>
+
+  <!-- 玩家积分 -->
+  <div class="players-bar" id="playersBar"></div>
+
+  <!-- 主体：所有按钮直接显示 -->
+  <div class="main-section">
+    <!-- 局类型选择 -->
+    <div class="section-label">🎯 局类型</div>
+    <div class="quick-buttons" id="gameTypeButtons" style="margin-bottom: 16px;">
+      <button class="quick-btn active" onclick="setGameType('normal')">普通局</button>
+      <button class="quick-btn" onclick="setGameType('kaibao')">开宝局</button>
+    </div>
+
+    <!-- 选择胡牌人 -->
+    <div class="section-label">👤 选择胡牌人</div>
+    <div class="hint-text" id="winnerHint">请选择胡牌的人</div>
+    <div class="quick-buttons" id="winnerButtons"></div>
+
+    <!-- 花数输入 -->
+    <div class="flower-section" style="margin-top: 16px;">
+      <div class="flower-row">
+        <div class="flower-label">🌸 花数</div>
+        <div class="flower-stepper">
+          <button class="flower-btn" onclick="changeFlower(-1)">−</button>
+          <span class="flower-value" id="flowerValue">0</span>
+          <button class="flower-btn" onclick="changeFlower(1)">+</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 选择牌型（多选） -->
+    <div class="section-label" style="margin-top: 16px;">📋 选择牌型（可多选）</div>
+    <div class="hint-text" id="patternHint">点击选择，再次点击取消</div>
+    <div class="quick-buttons" id="patternButtons"></div>
+
+    <!-- 选择点炮人（仅非自摸时需要） -->
+    <div id="dianpaoSection" style="display:none; margin-top: 16px;">
+      <div class="section-label">💥 选择点炮人</div>
+      <div class="hint-text" id="dianpaoHint">请选择点炮的人（不能是胡牌人自己）</div>
+      <div class="quick-buttons" id="dianpaoButtons"></div>
+    </div>
+  </div>
+
+  <!-- 操作区 -->
+  <div class="action-section">
+    <div class="selected-info" id="selectedInfo">
+      <div class="selected-row">
+        <span class="selected-label">胡牌人：</span>
+        <span class="selected-value" id="infoWinner">未选择</span>
+      </div>
+      <div class="selected-row">
+        <span class="selected-label">花数：</span>
+        <span class="selected-value" id="infoFlower">0</span>
+      </div>
+      <div class="selected-row">
+        <span class="selected-label">牌型：</span>
+        <span class="selected-value" id="infoPattern">未选择</span>
+      </div>
+      <div class="selected-row" id="infoDianpaoRow" style="display:none;">
+        <span class="selected-label">点炮人：</span>
+        <span class="selected-value" id="infoDianpao">未选择</span>
+      </div>
+    </div>
+
+    <div class="score-preview" id="scorePreview">
+      <div class="score-preview-text">预估分数变化</div>
+      <div class="score-preview-value" id="scorePreviewValue">+0</div>
+    </div>
+
+    <button class="confirm-btn" id="confirmBtn" disabled onclick="confirmScore()">确认记分</button>
+  </div>
+
+  <!-- 记录列表 -->
+  <div class="records-section">
+    <div class="records-title">
+      <span>📝 记分记录</span>
+      <span class="records-clear" onclick="clearRecords()">清空</span>
+    </div>
+    <div id="recordsList">
+      <div class="no-records">暂无记录，开始记分吧</div>
+    </div>
+  </div>
+
+  <!-- 结束按钮 -->
+  <div class="end-section">
+    <button class="end-btn" onclick="endGame()">🏁 结束游戏</button>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ========== 玩家数据 ==========
+    // 玩家信息从 URL 参数读取，如果没有则使用默认值
+    let players = [];
+
+    // ========== 游戏设置（从创建房间传来）==========
+    let gameConfig = {
+      base: 1,
+      multiplier: 5,
+      ceilingNormal: 50,
+      ceilingKaibaoMultiplier: 2,
+      menqingMultiplier: 2,
+      zimoMultiplier: 3,
+    };
+
+    // ========== 局类型 ==========
+    let gameType = 'normal';
+
+    // ========== 牌型数据 ==========
+    let patterns = [];
+
+    // ========== 状态 ==========
+    let state = {
+      selectedWinner: null,
+      selectedPatterns: [],
+      selectedDianpao: null,
+      flowerCount: 0,
+      round: 1,
+      lastScoreRound: 0,
+    };
+
+    let records = [];
+
+    // ========== 语音识别 ==========
+    let recognition = null;
+    let isListening = false;
+
+    // ========== 初始化 ==========
+    function init() {
+      const params = new URLSearchParams(window.location.search);
+
+      // 读取玩家信息
+      readPlayersFromParams(params);
+
+      // 读取游戏设置
+      gameConfig.base = parseInt(params.get('base')) || 1;
+      gameConfig.multiplier = parseInt(params.get('multiplier')) || 5;
+      gameConfig.ceilingNormal = parseInt(params.get('ceilingNormal')) || 50;
+      gameConfig.ceilingKaibaoMultiplier = parseInt(params.get('ceilingKaibao')) || 2;
+
+      // 初始积分
+      const initialScore = parseInt(params.get('score')) || 0;
+      players.forEach(p => { p.score = initialScore; });
+
+      // 更新规则摘要栏
+      document.getElementById('ruleBase').textContent = gameConfig.base;
+      document.getElementById('ruleMultiplier').textContent = gameConfig.multiplier;
+      document.getElementById('ruleCeilingNormal').textContent = gameConfig.ceilingNormal;
+      updateCeilingKaibaoDisplay();
+
+      // 解析牌型设置
+      const roomPatterns = {
+        '碰碰胡':   { val: parseInt(params.get('pengpeng'))   || 0, isMultiplier: true },
+        '清一色':   { val: parseInt(params.get('qingyise'))   || 0, isMultiplier: true },
+        '混一色':   { val: parseInt(params.get('hunyise'))   || 0, isMultiplier: true },
+        '杠开':     { val: parseInt(params.get('gangkai'))    || 0, isMultiplier: true },
+        '七小对':   { val: parseInt(params.get('qixiaodui')) || 0, isMultiplier: true },
+        '开宝':     { val: parseInt(params.get('kaibao'))    || 0, isMultiplier: true },
+        '大无花':   { val: parseInt(params.get('dawuhua'))   || 0, isMultiplier: false },
+        '小无花':   { val: parseInt(params.get('xiaowuhua')) || 0, isMultiplier: false },
+        '天胡':     { val: parseInt(params.get('tianhu'))    || 0, isMultiplier: false },
+        '地胡':     { val: parseInt(params.get('dihu'))      || 0, isMultiplier: false },
+        '花胡':     { val: parseInt(params.get('huahu'))     || 0, isMultiplier: false },
+      };
+
+      patterns = [];
+      for (const [name, { val, isMultiplier }] of Object.entries(roomPatterns)) {
+        if (val > 0) {
+          if (isMultiplier) {
+            patterns.push({ name, multiplier: val, isMultiplier: true });
+          } else {
+            patterns.push({ name, score: val, isMultiplier: false, noDianpao: true });
+          }
+        }
+      }
+      patterns.push({ name: '自摸', multiplier: gameConfig.zimoMultiplier, isMultiplier: true, noDianpao: true, isZimo: true });
+      patterns.push({ name: '门清', multiplier: gameConfig.menqingMultiplier, isMultiplier: true, noDianpao: true, isMenqing: true });
+
+      renderPlayers();
+      renderWinnerButtons();
+      renderPatternButtons();
+      updateDianpaoSection();
+      updateConfirmBtn();
+      initSpeechRecognition();
+    }
+
+    // ========== 从 URL 参数读取玩家信息 ==========
+    function readPlayersFromParams(params) {
+      const names  = params.get('names')  ? params.get('names').split(',')  : [];
+      const avatars = params.get('avatars') ? params.get('avatars').split(',') : [];
+      const positions = ['东', '南', '西', '北'];
+
+      if (names.length === 4) {
+        players = names.map((name, i) => ({
+          id: 'player' + i,
+          name: name,
+          avatar: avatars[i] || ['😎','🐱','🐶','🦁'][i],
+          position: positions[i],
+          score: 0,
+        }));
+      } else {
+        // 默认值
+        players = [
+          { id: 'player0', name: '我',   avatar: '😎', position: '东', score: 0 },
+          { id: 'player1', name: '小明', avatar: '🐱', position: '南', score: 0 },
+          { id: 'player2', name: '阿强', avatar: '🐶', position: '西', score: 0 },
+          { id: 'player3', name: '老王', avatar: '🦁', position: '北', score: 0 },
+        ];
+      }
+    }
+
+    // ========== 更新开宝封顶显示 ==========
+    function updateCeilingKaibaoDisplay() {
+      const val = gameConfig.ceilingNormal * gameConfig.ceilingKaibaoMultiplier;
+      document.getElementById('ruleCeilingKaibao').textContent = val;
+    }
+
+    // ========== 渲染玩家积分 ==========
+    function renderPlayers() {
+      const bar = document.getElementById('playersBar');
+      bar.innerHTML = '';
+      players.forEach(p => {
+        let cardClass = 'player-score-card';
+        if (p.id === state.selectedWinner) cardClass += ' selected-winner';
+        if (p.id === state.selectedDianpao) cardClass += ' selected-dianpao';
+
+        const card = document.createElement('div');
+        card.className = cardClass;
+
+        let scoreClass = 'zero';
+        if (p.score > 0) scoreClass = 'positive';
+        else if (p.score < 0) scoreClass = 'negative';
+
+        card.innerHTML = `
+          <div class="player-position">${p.position}</div>
+          <div class="player-avatar">${p.avatar}</div>
+          <div class="player-name">${p.name}</div>
+          <div class="player-score ${scoreClass}">${p.score > 0 ? '+' : ''}${p.score}</div>
+        `;
+        bar.appendChild(card);
+      });
+    }
+
+    // ========== 渲染胡牌人按钮 ==========
+    function renderWinnerButtons() {
+      const container = document.getElementById('winnerButtons');
+      container.innerHTML = '';
+      players.forEach(p => {
+        const btn = document.createElement('button');
+        btn.className = 'quick-btn' + (state.selectedWinner === p.id ? ' active' : '');
+        btn.innerHTML = `<span>${p.avatar} ${p.name}</span>`;
+        btn.onclick = () => selectWinner(p.id);
+        container.appendChild(btn);
+      });
+    }
+
+    // ========== 渲染牌型按钮（多选）==========
+    function renderPatternButtons() {
+      const container = document.getElementById('patternButtons');
+      container.innerHTML = '';
+      patterns.forEach(p => {
+        const isSelected = state.selectedPatterns.some(sp => sp.name === p.name);
+        const btn = document.createElement('button');
+        let className = 'quick-btn';
+        if (isSelected) className += ' active';
+        if (p.noDianpao) className += ' no-dianpao';
+        btn.className = className;
+
+        let btnText = p.name;
+        if (p.isMultiplier && p.multiplier > 0) {
+          btnText += ` ${p.multiplier}倍`;
+        } else if (!p.isMultiplier && p.score > 0) {
+          btnText += ` ${p.score}分`;
+        }
+        btn.innerHTML = `<span>${btnText}</span>`;
+        btn.onclick = () => togglePattern(p.name);
+        container.appendChild(btn);
+      });
+    }
+
+    // ========== 渲染点炮人按钮 ==========
+    function renderDianpaoButtons() {
+      const container = document.getElementById('dianpaoButtons');
+      container.innerHTML = '';
+      players.forEach(p => {
+        if (p.id === state.selectedWinner) return;
+        const btn = document.createElement('button');
+        btn.className = 'quick-btn' + (state.selectedDianpao === p.id ? ' active' : '');
+        btn.innerHTML = `<span>${p.avatar} ${p.name}</span>`;
+        btn.onclick = () => selectDianpao(p.id);
+        container.appendChild(btn);
+      });
+    }
+
+    // ========== 更新点炮人区域显示/隐藏 ==========
+    function updateDianpaoSection() {
+      const section = document.getElementById('dianpaoSection');
+      const hasZimo = state.selectedPatterns.some(p => p.isZimo);
+      if (hasZimo) {
+        section.style.display = 'none';
+      } else {
+        section.style.display = 'block';
+        renderDianpaoButtons();
+      }
+    }
+
+    // ========== 花数调整 ==========
+    function changeFlower(delta) {
+      state.flowerCount = Math.max(0, state.flowerCount + delta);
+      document.getElementById('flowerValue').textContent = state.flowerCount;
+      document.getElementById('infoFlower').textContent = state.flowerCount;
+      updateScorePreview();
+    }
+
+    // ========== 选择胡牌人 ==========
+    function selectWinner(playerId) {
+      if (state.selectedWinner === playerId) {
+        state.selectedWinner = null;
+        document.getElementById('winnerHint').textContent = '请选择胡牌的人';
+      } else {
+        state.selectedWinner = playerId;
+        document.getElementById('winnerHint').textContent = `✅ 已选择：${players.find(p => p.id === playerId).name}`;
+      }
+      renderPlayers();
+      renderWinnerButtons();
+      updateSelectedInfo();
+      updateScorePreview();
+      updateConfirmBtn();
+    }
+
+    // ========== 切换牌型选择（多选）==========
+    function togglePattern(patternName) {
+      const pattern = patterns.find(p => p.name === patternName);
+      const idx = state.selectedPatterns.findIndex(p => p.name === patternName);
+      if (idx >= 0) {
+        state.selectedPatterns.splice(idx, 1);
+      } else {
+        state.selectedPatterns.push(pattern);
+      }
+      renderPatternButtons();
+      updateDianpaoSection();
+      updateSelectedInfo();
+      updateScorePreview();
+      updateConfirmBtn();
+    }
+
+    // ========== 选择点炮人 ==========
+    function selectDianpao(playerId) {
+      if (state.selectedDianpao === playerId) {
+        state.selectedDianpao = null;
+        document.getElementById('infoDianpao').textContent = '未选择';
+      } else {
+        state.selectedDianpao = playerId;
+        document.getElementById('infoDianpao').textContent = players.find(p => p.id === playerId).name;
+      }
+      renderPlayers();
+      renderDianpaoButtons();
+      updateSelectedInfo();
+      updateScorePreview();
+      updateConfirmBtn();
+    }
+
+    // ========== 计算分数 ==========
+    // 公式：
+    //   基数 = 有固定分牌型 ? 固定分基准分(取最高) : (底 + 花数)
+    //   结果 = 基数 × 全场倍数 × 所有选中的倍数牌型连乘
+    //   每家扣分 = min(结果, 当前局封顶)
+    //   总分 = 每家扣分 × 3（自摸/无点炮）或 × 1（点炮）
+    function calculateScore() {
+      if (!state.selectedWinner || state.selectedPatterns.length === 0) return { score: 0, perPerson: 0 };
+
+      const ceiling = getCeiling();
+
+      // 固定分牌型（大无花/小无花/天胡/地胡/花胡）
+      const fixedPatterns = state.selectedPatterns.filter(p => !p.isMultiplier && p.score > 0);
+      const hasFixed = fixedPatterns.length > 0;
+
+      // 基数：固定分牌型取基准分（最高），否则取(底 + 花数)
+      let baseValue = hasFixed
+        ? Math.max(...fixedPatterns.map(p => p.score))
+        : (gameConfig.base + state.flowerCount);
+
+      // 乘全场倍数和所有倍数牌型
+      let totalMultiplier = gameConfig.multiplier;  // 全场倍数
+      state.selectedPatterns.forEach(p => {
+        if (p.isMultiplier && p.multiplier > 0) {
+          totalMultiplier *= p.multiplier;
+        }
+      });
+
+      const rawScore = baseValue * totalMultiplier;
+      const perPerson = Math.min(rawScore, ceiling);
+
+      // 总分
+      const hasZimo = state.selectedPatterns.some(p => p.isZimo);
+      const hasNoDianpao = state.selectedPatterns.some(p => p.noDianpao);
+      const totalScore = (hasZimo || hasNoDianpao) ? perPerson * 3 : perPerson;
+
+      return { score: totalScore, perPerson: perPerson };
+    }
+
+    // ========== 更新已选信息 ==========
+    function updateSelectedInfo() {
+      if (state.selectedWinner) {
+        document.getElementById('infoWinner').textContent = players.find(p => p.id === state.selectedWinner).name;
+      } else {
+        document.getElementById('infoWinner').textContent = '未选择';
+      }
+
+      if (state.selectedPatterns.length > 0) {
+        const names = state.selectedPatterns.map(p => {
+          let s = p.name;
+          if (p.isMultiplier && p.multiplier > 0) s += `${p.multiplier}倍`;
+          if (!p.isMultiplier && p.score > 0) s += `${p.score}分`;
+          return s;
+        });
+        document.getElementById('infoPattern').textContent = names.join(' + ');
+      } else {
+        document.getElementById('infoPattern').textContent = '未选择';
+      }
+
+      const hasZimo = state.selectedPatterns.some(p => p.isZimo);
+      if (!hasZimo) {
+        document.getElementById('infoDianpaoRow').style.display = 'flex';
+        if (state.selectedDianpao) {
+          document.getElementById('infoDianpao').textContent = players.find(p => p.id === state.selectedDianpao).name;
+        } else {
+          document.getElementById('infoDianpao').textContent = '未选择';
+        }
+      } else {
+        document.getElementById('infoDianpaoRow').style.display = 'none';
+      }
+    }
+
+    // ========== 更新分数预览 ==========
+    function updateScorePreview() {
+      const preview = document.getElementById('scorePreview');
+      if (!state.selectedWinner || state.selectedPatterns.length === 0) {
+        preview.classList.remove('show');
+        return;
+      }
+      const hasZimo = state.selectedPatterns.some(p => p.isZimo);
+      if (!hasZimo && !state.selectedPatterns.some(p => p.noDianpao) && !state.selectedDianpao) {
+        preview.classList.remove('show');
+        return;
+      }
+
+      preview.classList.add('show');
+
+      const winner = players.find(p => p.id === state.selectedWinner);
+      const { score, perPerson } = calculateScore();
+
+      let previewText = '';
+      if (hasZimo || state.selectedPatterns.some(p => p.noDianpao)) {
+        previewText = `${winner.name} +${score}，其他各 -${perPerson}`;
+      } else {
+        const dianpao = players.find(p => p.id === state.selectedDianpao);
+        previewText = `${winner.name} +${score}，${dianpao.name} -${perPerson}`;
+      }
+
+      document.getElementById('scorePreviewValue').textContent = previewText;
+    }
+
+    // ========== 设置局类型 ==========
+    function setGameType(type) {
+      gameType = type;
+      document.querySelectorAll('#gameTypeButtons .quick-btn').forEach(btn => {
+        btn.classList.toggle('active',
+          (type === 'normal' && btn.textContent === '普通局') ||
+          (type === 'kaibao' && btn.textContent === '开宝局')
+        );
+      });
+
+      // 开宝局：自动勾选开宝牌型；普通局：取消勾选开宝
+      const kaibaoPat = patterns.find(p => p.name === '开宝');
+      if (!kaibaoPat) { updateScorePreview(); return; }
+      const idx = state.selectedPatterns.findIndex(p => p.name === '开宝');
+      if (type === 'kaibao' && idx < 0) {
+        state.selectedPatterns.push(kaibaoPat);
+        renderPatternButtons();
+        updateDianpaoSection();
+      } else if (type === 'normal' && idx >= 0) {
+        state.selectedPatterns.splice(idx, 1);
+        renderPatternButtons();
+        updateDianpaoSection();
+      }
+
+      // 更新规则栏开宝封顶显示
+      updateCeilingKaibaoDisplay();
+      updateSelectedInfo();
+      updateScorePreview();
+    }
+
+    // ========== 获取当前局封顶分数 ==========
+    function getCeiling() {
+      if (gameType === 'kaibao') {
+        return gameConfig.ceilingNormal * gameConfig.ceilingKaibaoMultiplier;
+      }
+      return gameConfig.ceilingNormal;
+    }
+
+    // ========== 更新确认按钮 ==========
+    function updateConfirmBtn() {
+      const btn = document.getElementById('confirmBtn');
+      let canConfirm = false;
+
+      if (state.selectedWinner && state.selectedPatterns.length > 0) {
+        const hasZimo = state.selectedPatterns.some(p => p.isZimo);
+        if (hasZimo || state.selectedPatterns.some(p => p.noDianpao)) {
+          canConfirm = true;
+        } else {
+          canConfirm = state.selectedDianpao && state.selectedDianpao !== state.selectedWinner;
+        }
+      }
+
+      btn.disabled = !canConfirm;
+    }
+
+    // ========== 确认记分 ==========
+    function confirmScore() {
+      if (!state.selectedWinner || state.selectedPatterns.length === 0) return;
+      const hasZimo = state.selectedPatterns.some(p => p.isZimo);
+      if (!hasZimo && !state.selectedPatterns.some(p => p.noDianpao) && !state.selectedDianpao) return;
+
+      if (state.round <= state.lastScoreRound) {
+        showToast('本局已记分，请勿重复操作');
+        return;
+      }
+
+      const now = new Date();
+      const timeStr = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+      const winner = players.find(p => p.id === state.selectedWinner);
+      const { score, perPerson } = calculateScore();
+
+      const patternDesc = state.selectedPatterns.map(p => p.name).join('+');
+      let desc = '';
+      let icon = '🎯';
+
+      if (hasZimo || state.selectedPatterns.some(p => p.noDianpao)) {
+        players.forEach(p => {
+          if (p.id === state.selectedWinner) {
+            p.score += score;
+          } else {
+            p.score -= perPerson;
+          }
+        });
+        desc = `${winner.name} ${patternDesc}`;
+        icon = '🎯';
+      } else {
+        const dianpao = players.find(p => p.id === state.selectedDianpao);
+        winner.score += score;
+        dianpao.score -= perPerson;
+        desc = `${winner.name} ${patternDesc}（${dianpao.name}点炮）`;
+        icon = '💥';
+      }
+
+      records.unshift({
+        icon: icon,
+        desc: desc,
+        time: timeStr,
+      });
+
+      state.lastScoreRound = state.round;
+
+      renderPlayers();
+      renderRecords();
+
+      state.round++;
+      document.getElementById('roundText').textContent = `第${state.round}局`;
+
+      resetSelection();
+
+      showToast(`记分成功！已进入第${state.round}局`);
+    }
+
+    // ========== 重置选择 ==========
+    function resetSelection() {
+      state.selectedWinner = null;
+      state.selectedPatterns = [];
+      state.selectedDianpao = null;
+      state.flowerCount = 0;
+      document.getElementById('flowerValue').textContent = '0';
+      document.getElementById('winnerHint').textContent = '请选择胡牌的人';
+      renderPlayers();
+      renderWinnerButtons();
+      renderPatternButtons();
+      updateDianpaoSection();
+      updateSelectedInfo();
+      updateScorePreview();
+      updateConfirmBtn();
+    }
+
+    // ========== 渲染记录 ==========
+    function renderRecords() {
+      const list = document.getElementById('recordsList');
+      if (records.length === 0) {
+        list.innerHTML = '<div class="no-records">暂无记录，开始记分吧</div>';
+        return;
+      }
+      list.innerHTML = '';
+      records.forEach(r => {
+        const item = document.createElement('div');
+        item.className = 'record-item';
+        item.innerHTML = `
+          <div class="record-icon">${r.icon}</div>
+          <div class="record-content">
+            <div class="record-desc">${r.desc}</div>
+            <div class="record-time">${r.time}</div>
+          </div>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    // ========== 清空记录 ==========
+    function clearRecords() {
+      if (confirm('确定要清空所有记录吗？')) {
+        records = [];
+        renderRecords();
+        showToast('记录已清空');
+      }
+    }
+
+    // ========== 结束游戏 ==========
+    function endGame() {
+      if (confirm('确定要结束游戏吗？')) {
+        showToast('游戏结束！');
+      }
+    }
+
+    // ========== 显示提示 ==========
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    // ==========================================
+    // 语音识别功能
+    // ==========================================
+    function initSpeechRecognition() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        document.getElementById('voiceStatus').textContent = '当前浏览器不支持语音识别';
+        document.getElementById('voiceBtn').disabled = true;
+        return;
+      }
+
+      recognition = new SpeechRecognition();
+      recognition.lang = 'zh-CN';
+      recognition.interimResults = false;
+      recognition.continuous = false;
+
+      recognition.onresult = function(event) {
+        const raw = event.results[0][0].transcript.trim();
+        document.getElementById('voiceStatus').textContent = `识别到：「${raw}」`;
+        parseVoiceInput(raw);
+        stopVoice();
+      };
+
+      recognition.onerror = function(event) {
+        let msg = '语音识别出错';
+        if (event.error === 'not-allowed') msg = '请允许麦克风权限';
+        else if (event.error === 'network') msg = '网络错误，请重试';
+        document.getElementById('voiceStatus').textContent = msg;
+        stopVoice();
+      };
+
+      recognition.onend = function() {
+        stopVoice();
+      };
+    }
+
+    function toggleVoice() {
+      if (isListening) {
+        stopVoice();
+      } else {
+        startVoice();
+      }
+    }
+
+    function startVoice() {
+      if (!recognition) {
+        showToast('当前浏览器不支持语音识别');
+        return;
+      }
+      try {
+        recognition.start();
+        isListening = true;
+        document.getElementById('voiceBtn').classList.add('listening');
+        document.getElementById('voiceBtnText').textContent = '正在听...';
+        document.getElementById('voiceStatus').textContent = '请说话，例如：「我自摸门清5个花」';
+      } catch(e) {
+        document.getElementById('voiceStatus').textContent = '启动失败，请重试';
+      }
+    }
+
+    function stopVoice() {
+      isListening = false;
+      try { recognition && recognition.stop(); } catch(e) {}
+      document.getElementById('voiceBtn').classList.remove('listening');
+      document.getElementById('voiceBtnText').textContent = '语音记分';
+    }
+
+    // ========== 解析语音输入 ==========
+    function parseVoiceInput(text) {
+      // 先重置当前选择（保留局类型）
+      state.selectedWinner = null;
+      state.selectedPatterns = [];
+      state.selectedDianpao = null;
+      state.flowerCount = 0;
+
+      const t = text.replace(/\s+/g, '');
+
+      // 1. 识别胡牌人（匹配玩家名称的任意子串）
+      let winnerId = null;
+      for (const p of players) {
+        if (t.includes(p.name)) {
+          winnerId = p.id;
+          break;
+        }
+      }
+
+      // 2. 识别花数：匹配"N个花"或"花N"或"N花"
+      let flowerCount = 0;
+      const flowerMatch1 = t.match(/(\d+)个?花/);
+      const flowerMatch2 = t.match(/花(\d+)/);
+      if (flowerMatch1) flowerCount = parseInt(flowerMatch1[1]);
+      else if (flowerMatch2) flowerCount = parseInt(flowerMatch2[1]);
+      // 也支持直接说数字+花
+      const flowerMatch3 = t.match(/(\d+)\s*花/);
+      if (!flowerMatch1 && !flowerMatch2 && flowerMatch3) flowerCount = parseInt(flowerMatch3[1]);
+
+      // 3. 识别牌型关键词
+      const matchedPatterns = [];
+
+      // 自摸（关键词：自摸、自摸胡）
+      if (t.includes('自摸') || t.includes('自胡')) {
+        const pat = patterns.find(p => p.isZimo);
+        if (pat) matchedPatterns.push(pat);
+      }
+
+      // 门清
+      if (t.includes('门清') || t.includes('门')) {
+        const pat = patterns.find(p => p.isMenqing);
+        if (pat && !matchedPatterns.includes(pat)) matchedPatterns.push(pat);
+      }
+
+      // 碰碰胡
+      if (t.includes('碰碰') || t.includes('对对胡') || t.includes('对对')) {
+        const pat = patterns.find(p => p.name === '碰碰胡');
+        if (pat && !matchedPatterns.includes(pat)) matchedPatterns.push(pat);
+      }
+
+      // 清一色
+      if (t.includes('清一色') || t.includes('清一')) {
+        const pat = patterns.find(p => p.name === '清一色');
+        if (pat && !matchedPatterns.includes(pat)) matchedPatterns.push(pat);
+      }
+
+      // 混一色
+      if (t.includes('混一色') || t.includes('混一')) {
+        const pat = patterns.find(p => p.name === '混一色');
+        if (pat && !matchedPatterns.includes(pat)) matchedPatterns.push(pat);
+      }
+
+      // 杠开
+      if (t.includes('杠开') || t.includes('杠后开花')) {
+        const pat = patterns.find(p => p.name === '杠开');
+        if (pat && !matchedPatterns.includes(pat)) matchedPatterns.push(pat);
+      }
+
+      // 七小对
+      if (t.includes('七小对') || t.includes('七对') || t.includes('七小')) {
+        const pat = patterns.find(p => p.name === '七小对');
+        if (pat && !matchedPatterns.includes(pat)) matchedPatterns.push(pat);
+      }
+
+      // 开宝
+      if (t.includes('开宝') || t.includes('宝')) {
+        const pat = patterns.find(p => p.name === '开宝');
+        if (pat && !matchedPatterns.includes(pat)) matchedPatterns.push(pat);
+      }
+
+      // 大无花
+      if (t.includes('大无花') || t.includes('大无')) {
+        const pat = patterns.find(p => p.name === '大无花');
+        if (pat && !matchedPatterns.includes(pat)) matchedPatterns.push(pat);
+      }
+
+      // 小无花
+      if (t.includes('小无花') || t.includes('小无')) {
+        const pat = patterns.find(p => p.name === '小无花');
+        if (pat && !matchedPatterns.includes(pat)) matchedPatterns.push(pat);
+      }
+
+      // 天胡
+      if (t.includes('天胡') || t.includes('天')) {
+        const pat = patterns.find(p => p.name === '天胡');
+        if (pat && !matchedPatterns.includes(pat)) matchedPatterns.push(pat);
+      }
+
+      // 地胡
+      if (t.includes('地胡') || t.includes('地')) {
+        const pat = patterns.find(p => p.name === '地胡');
+        if (pat && !matchedPatterns.includes(pat)) matchedPatterns.push(pat);
+      }
+
+      // 花胡
+      if (t.includes('花胡')) {
+        const pat = patterns.find(p => p.name === '花胡');
+        if (pat && !matchedPatterns.includes(pat)) matchedPatterns.push(pat);
+      }
+
+      // 4. 如果没有匹配到自摸，尝试识别点炮人
+      const hasZimo = matchedPatterns.some(p => p.isZimo);
+      let dianpaoId = null;
+      if (!hasZimo) {
+        // 点炮人关键词："点炮XXX" "XXX点炮" "XXX炮"
+        for (const p of players) {
+          if (p.id === winnerId) continue;
+          if (t.includes(p.name)) {
+            dianpaoId = p.id;
+            break;
+          }
+        }
+      }
+
+      // ========== 应用识别结果 ==========
+      if (winnerId) {
+        state.selectedWinner = winnerId;
+      }
+
+      state.selectedPatterns = matchedPatterns;
+      state.flowerCount = flowerCount;
+
+      // 更新 UI
+      document.getElementById('flowerValue').textContent = state.flowerCount;
+      document.getElementById('infoFlower').textContent = state.flowerCount;
+
+      if (winnerId) {
+        document.getElementById('winnerHint').textContent = `✅ 语音识别：${players.find(p => p.id === winnerId).name}`;
+      }
+
+      if (dianpaoId && !hasZimo) {
+        state.selectedDianpao = dianpaoId;
+      }
+
+      // 如果识别到"开宝"，自动切换到开宝局
+      if (matchedPatterns.some(p => p.name === '开宝')) {
+        setGameType('kaibao');
+      }
+
+      renderPlayers();
+      renderWinnerButtons();
+      renderPatternButtons();
+      updateDianpaoSection();
+      updateSelectedInfo();
+      updateScorePreview();
+      updateConfirmBtn();
+
+      // 反馈
+      let feedback = '已识别：';
+      if (winnerId) feedback += `${players.find(p => p.id === winnerId).name}胡 `;
+      if (matchedPatterns.length > 0) feedback += matchedPatterns.map(p => p.name).join('+') + ' ';
+      if (flowerCount > 0) feedback += `${flowerCount}花 `;
+      if (dianpaoId && !hasZimo) feedback += `点炮：${players.find(p => p.id === dianpaoId).name}`;
+      document.getElementById('voiceStatus').textContent = feedback;
+    }
+
+    // 页面加载
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

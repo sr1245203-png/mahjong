@@ -1,0 +1,104 @@
+/* 自定义日期选择器样式 */
+
+.date-picker {
+  width: 100%;
+  padding: 20rpx;
+  box-sizing: border-box;
+}
+
+/* 三个按钮容器 */
+.picker-buttons {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  gap: 20rpx;
+}
+
+/* 单个按钮 */
+.picker-btn {
+  flex: 1;
+  padding: 20rpx 0;
+  background-color: #333333;
+  border-radius: 12rpx;
+  text-align: center;
+}
+
+.picker-btn-text {
+  color: #ffffff;
+  font-size: 28rpx;
+}
+
+/* 遮罩层 */
+.mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 999;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s, visibility 0.3s;
+}
+
+.mask-show {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* 选择列表容器 */
+.picker-list {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #1a1a1a;
+  border-radius: 24rpx 24rpx 0 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+  z-index: 1000;
+}
+
+.picker-list-show {
+  max-height: 500rpx;
+}
+
+/* 列表标题 */
+.picker-list-title {
+  padding: 30rpx;
+  text-align: center;
+  font-size: 32rpx;
+  color: #ffffff;
+  border-bottom: 1rpx solid #333333;
+  position: sticky;
+  top: 0;
+  background-color: #1a1a1a;
+}
+
+/* 滚动区域 */
+.picker-scroll {
+  max-height: 400rpx;
+  padding: 20rpx 0;
+}
+
+/* 单个选项 */
+.picker-item {
+  padding: 24rpx 40rpx;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 28rpx;
+  transition: color 0.2s, background-color 0.2s;
+}
+
+.picker-item:active {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* 选中状态 - 更亮的白色 */
+.picker-item-selected {
+  color: #ffffff;
+  font-weight: bold;
+  font-size: 32rpx;
+}
