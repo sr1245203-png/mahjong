@@ -1367,6 +1367,9 @@
       state.round++;
       document.getElementById('roundText').textContent = `第${state.round}局`;
 
+      // 自动保存当前对局（防止误关页面）
+      saveCurrentSession();
+
       resetSelection();
 
       showToast(`记分成功！已进入第${state.round}局`);
@@ -1432,8 +1435,107 @@
       }
     }
 
+    // ========== 自动保存当前对局（每局记分后） ==========
+    function saveCurrentSession() {
+      const sessionData = {
+        timestamp: Date.now(),
+        round: state.round,
+        lastScoreRound: state.lastScoreRound,
+        isKaibao: state.isKaibao || false,
+        initialScore: gameConfig.initialScore || 0,
+        players: players.map(p => ({
+          name: p.name,
+          avatar: p.avatar,
+          score: p.score,
+          position: p.position,
+        })),
+        records: records.map(r => ({
+          icon: r.icon,
+          desc: r.desc,
+          time: r.time,
+          scores: r.scores ? r.scores.map(s => ({ name: s.name, score: s.score, avatar: s.avatar })) : undefined,
+        })),
+        config: {
+          base: gameConfig.base,
+          multiplier: gameConfig.multiplier,
+          ceilingNormal: gameConfig.ceilingNormal,
+          ceilingKaibaoMultiplier: gameConfig.ceilingKaibaoMultiplier,
+        },
+      };
+      localStorage.setItem('mahjongLiveSession', JSON.stringify(sessionData));
+    }
+
+    // ========== 检查是否有未完成的对局 ==========
+    function checkSession() {
+      const raw = localStorage.getItem('mahjongLiveSession');
+      if (!raw) return;
+      const session = JSON.parse(raw);
+      if (!session || !session.players || !session.records) {
+        localStorage.removeItem('mahjongLiveSession');
+        return;
+      }
+      // 显示恢复提示
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:9999;';
+      overlay.innerHTML = `
+        <div style="background:#1c2333;border-radius:20px;padding:30px;max-width:340px;text-align:center;border:1px solid #30363D;margin:16px;">
+          <div style="font-size:28px;margin-bottom:10px;">🔄</div>
+          <div style="font-size:17px;font-weight:600;color:#fff;margin-bottom:6px;">发现未完成的对局</div>
+          <div style="font-size:13px;color:#8B949E;margin-bottom:6px;">
+            第${session.round}局 · ${session.players.map(p=>p.name).join(' ')}
+          </div>
+          <div style="font-size:12px;color:#8B949E;margin-bottom:20px;">
+            保存于 ${new Date(session.timestamp).toLocaleString('zh-CN')}
+          </div>
+          <div style="display:flex;gap:10px;">
+            <button id="resumeDiscard" style="flex:1;padding:12px;border-radius:12px;background:transparent;border:1px solid #30363D;color:#8B949E;font-size:14px;cursor:pointer;font-family:inherit;">放弃</button>
+            <button id="resumeConfirm" style="flex:1;padding:12px;border-radius:12px;background:linear-gradient(135deg,#FF6B35,#FF8F66);border:none;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">恢复对局</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+
+      document.getElementById('resumeConfirm').onclick = () => {
+        overlay.remove();
+        restoreSession(session);
+      };
+      document.getElementById('resumeDiscard').onclick = () => {
+        overlay.remove();
+        localStorage.removeItem('mahjongLiveSession');
+      };
+    }
+
+    function restoreSession(session) {
+      // 恢复玩家数据
+      session.players.forEach((sp, i) => {
+        if (players[i]) {
+          players[i].name = sp.name;
+          players[i].avatar = sp.avatar;
+          players[i].score = sp.score;
+          players[i].position = sp.position;
+        }
+      });
+
+      // 清空并恢复记录
+      records.length = 0;
+      session.records.forEach(r => records.push(r));
+
+      // 恢复状态
+      state.round = session.round;
+      state.lastScoreRound = session.lastScoreRound;
+      state.isKaibao = session.isKaibao;
+      gameConfig.initialScore = session.initialScore;
+
+      // 更新UI
+      document.getElementById('roundText').textContent = `第${state.round}局`;
+      renderPlayers();
+      renderRecords();
+      resetSelection();
+      showToast('已恢复对局数据');
+    }
+
     function confirmEndGame() {
-      // 保存游戏数据到 localStorage
+      // 保存完整对局数据到 localStorage
       const gameData = {
         timestamp: new Date().toISOString(),
         initialScore: gameConfig.initialScore || 0,
@@ -1457,6 +1559,7 @@
         },
       };
       localStorage.setItem('mahjongGameData', JSON.stringify(gameData));
+      localStorage.removeItem('mahjongLiveSession'); // 对局结束，清除自动保存
       window.location.href = 'mahjong-game-summary.html';
     }
 
@@ -1766,7 +1869,10 @@
     }
 
     // 页面加载
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', function() {
+      init();
+      checkSession();
+    });
   </script>
 </body>
 </html>
