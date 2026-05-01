@@ -2,6 +2,9 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>碰碰胡 - 等待室</title>
   <style>
@@ -113,6 +116,8 @@
     /* ========== 主容器 ========== */
     .container {
       padding: 20px 16px 100px;
+      margin: 0 auto;
+      max-width: 520px;
     }
 
     /* ========== 房间规则卡片 ========== */
@@ -498,6 +503,10 @@
       font-size: 15px;
       cursor: pointer;
     }
+    @media (min-width: 700px) {
+      .container { max-width: 640px; padding: 24px; }
+      body { background: linear-gradient(135deg, #0a0e14 0%, #161B22 100%); }
+    }
   </style>
 </head>
 <body>
@@ -506,8 +515,8 @@
     <button class="share-btn" onclick="showShare()">↗️ 分享</button>
     <div class="header-content">
       <div class="room-code">房间号：<span class="room-code-value">8825</span></div>
-      <h1 class="header-title">等待玩家加入</h1>
-      <p class="header-subtitle" id="waitStatus">已加入 1/4 人</p>
+      <h1 class="header-title">🀄 上海敲麻</h1>
+      <p class="header-subtitle">好友局 · <span id="waitStatus">已加入 1/4 人</span></p>
     </div>
   </header>
 
@@ -595,10 +604,19 @@
     let botIdx = 0;  // 轮流取用机器人名字
 
     // seat[0] = 房主（固定），seat[1~3] = null 或 {name, avatar}
-    let seats = [
-      { name: '我（Rui）', avatar: '😎', isOwner: true },
-      null, null, null
-    ];
+    let ownerName = '我';
+    let seats = [];
+
+    function initSeats() {
+      const params = new URLSearchParams(window.location.search);
+      const nickname = params.get('nickname');
+      ownerName = nickname ? nickname : '我';
+      seats = [
+        { name: ownerName, avatar: '😎', isOwner: true },
+        null, null, null
+      ];
+      renderSeats();
+    }
 
     function showToast(msg) {
       const toast = document.getElementById('toast');
@@ -628,12 +646,18 @@
           card.innerHTML = `
             ${badge}
             <div class="seat-avatar">${seat.avatar}</div>
-            <div class="seat-name">${seat.name}</div>
+            <div class="seat-name" id="name-${idx}">${seat.name}${seat.isOwner?'':' ✏️'}</div>
             <div class="seat-status ready">✅ 已准备</div>
           `;
-          // 点击机器人座位 → 踢出
+          // 机器人：点击名字可改名，点击卡片其它区域踢出
           if (!seat.isOwner) {
-            card.onclick = () => kickBot(idx);
+            card.onclick = (e) => {
+              if (e.target.id === `name-${idx}` || e.target.closest(`#name-${idx}`)) {
+                editBotName(idx);
+              } else {
+                kickBot(idx);
+              }
+            };
             card.style.cursor = 'pointer';
           }
         } else {
@@ -687,6 +711,37 @@
       showToast(`已踢出：${name}`);
     }
 
+    // ========== 修改机器人昵称 ==========
+    let editingIdx = -1;
+    function editBotName(idx) {
+      if (!seats[idx] || seats[idx].isOwner) return;
+      editingIdx = idx;
+      const nameEl = document.getElementById(`name-${idx}`);
+      const currentName = seats[idx].name;
+      nameEl.innerHTML = '';
+      const input = document.createElement('input');
+      input.className = 'name-edit-input';
+      input.value = currentName;
+      input.maxLength = 4;
+      Object.assign(input.style, {width:'60px',height:'26px',borderRadius:'6px',border:'1px solid var(--primary-light)',background:'rgba(255,255,255,0.08)',color:'#fff',fontSize:'13px',textAlign:'center',outline:'none',fontFamily:'inherit'});
+      nameEl.appendChild(input);
+      input.focus();
+      input.select();
+      input.onblur = () => saveBotName(idx);
+      input.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); input.blur(); } };
+    }
+    function saveBotName(idx) {
+      const nameEl = document.getElementById(`name-${idx}`);
+      const input = nameEl?.querySelector('input');
+      if (input && seats[idx]) {
+        const newName = input.value.trim() || seats[idx].name;
+        seats[idx].name = newName;
+      }
+      editingIdx = -1;
+      renderSeats();
+      showToast(`昵称已修改`);
+    }
+
     // ========== 读取URL参数，显示房间规则 ==========
     function loadRoomRules() {
       const params = new URLSearchParams(window.location.search);
@@ -699,11 +754,11 @@
       const pengpeng  = params.get('pengpeng')  || '0';
       const qingyise  = params.get('qingyise')  || '0';
       const hunyise   = params.get('hunyise')   || '0';
+      const pinghu    = params.get('pinghu')    || '0';
       const gangkai   = params.get('gangkai')   || '0';
       const qixiaodui = params.get('qixiaodui') || '0';
       const kaibao    = params.get('kaibao')    || '0';
-      const dawuhua   = params.get('dawuhua')   || '0';
-      const xiaowuhua = params.get('xiaowuhua') || '0';
+      const wuhuaguo  = params.get('wuhuaguo')  || '0';
       const tianhu    = params.get('tianhu')    || '0';
       const dihu      = params.get('dihu')      || '0';
       const huahu     = params.get('huahu')     || '0';
@@ -719,11 +774,11 @@
         { name: '碰碰胡', val: pengpeng,  unit: '倍' },
         { name: '清一色', val: qingyise,  unit: '倍' },
         { name: '混一色', val: hunyise,   unit: '倍' },
+        { name: '平胡',   val: pinghu,    unit: '倍' },
         { name: '杠开',   val: gangkai,   unit: '倍' },
         { name: '七小对', val: qixiaodui, unit: '倍' },
         { name: '开宝',   val: kaibao,    unit: '倍' },
-        { name: '大无花', val: dawuhua,   unit: '分' },
-        { name: '小无花', val: xiaowuhua, unit: '分' },
+        { name: '无花果', val: wuhuaguo,  unit: '分' },
         { name: '天胡',   val: tianhu,    unit: '分' },
         { name: '地胡',   val: dihu,      unit: '分' },
         { name: '花胡',   val: huahu,     unit: '分' },
@@ -794,8 +849,8 @@
 
     // ========== 页面加载 ==========
     document.addEventListener('DOMContentLoaded', () => {
+      initSeats();
       loadRoomRules();
-      renderSeats();
     });
   </script>
 </body>

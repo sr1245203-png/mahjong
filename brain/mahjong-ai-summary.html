@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>上海敲麻 - 分析与总结</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    :root{--primary:#FF6B35;--primary-light:#FF8F66;--secondary:#4ECDC4;--success:#51CF66;--danger:#FF6B6B;--bg-dark:#0D1117;--bg-card:#161B22;--text-primary:#FFF;--text-secondary:#8B949E;--border:#30363D}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;background:var(--bg-dark);color:var(--text-primary);min-height:100vh;padding-bottom:calc(100px+env(safe-area-inset-bottom))}
+    .header{background:linear-gradient(180deg,#1a1f2e 0%,var(--bg-dark)100%);padding:24px 16px 32px;text-align:center;position:relative}
+    .share-btn{position:absolute;right:16px;top:20px;height:36px;border-radius:18px;padding:0 14px;border:1px solid rgba(255,107,53,0.5);background:rgba(255,107,53,0.12);color:#FF8F66;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .2s;font-family:inherit}
+    .share-btn:active{transform:scale(.95);background:rgba(255,107,53,0.2)}
+    .header-title{font-size:20px;font-weight:700}
+    .header-subtitle{font-size:13px;color:var(--text-secondary);margin-top:4px}
+    .container{padding:16px;max-width:520px;margin:0 auto}
+    .card{background:var(--bg-card);border-radius:16px;padding:20px;margin-bottom:16px;border:1px solid var(--border)}
+    .card-header{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+    .chart-wrap{width:100%;overflow-x:auto;text-align:center;margin:8px 0}
+    .chart-wrap svg{display:block;margin:0 auto;max-width:100%}
+    .legend-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:middle}
+    .ai-loading{text-align:center;padding:60px 0}
+    .ai-loading-icon{font-size:48px;margin-bottom:16px;animation:pulse 1.5s ease-in-out infinite}
+    @keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.1);opacity:0.6}}
+    .ai-loading-text{font-size:14px;color:var(--text-secondary)}
+    .bottom-actions{position:fixed;bottom:0;left:0;right:0;padding:16px;padding-bottom:calc(16px+env(safe-area-inset-bottom));background:linear-gradient(180deg,transparent 0%,var(--bg-dark)30%)}
+    .restart-btn{width:100%;height:52px;border-radius:26px;background:linear-gradient(135deg,var(--primary),var(--primary-light));border:none;color:#fff;font-size:17px;font-weight:600;cursor:pointer;box-shadow:0 4px 20px rgba(255,107,53,0.4);transition:all .2s}
+    .restart-btn:active{transform:scale(.98)}
+    .no-data{text-align:center;color:var(--text-secondary);padding:60px 0;font-size:14px}
+    /* Per player */
+    .player-row{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;margin-bottom:8px;border:1px solid var(--border);background:rgba(255,255,255,0.03)}
+    .player-row:first-child{background:linear-gradient(135deg,rgba(255,215,0,0.12),rgba(255,215,0,0.05));border-color:rgba(255,215,0,0.3)}
+    .player-rank{font-size:20px;width:32px;text-align:center;flex-shrink:0}
+    .player-avatar{font-size:24px;flex-shrink:0}
+    .player-info{flex:1;min-width:0}
+    .player-name{font-size:14px;font-weight:600}
+    .player-pos{font-size:11px;color:var(--text-secondary)}
+    .player-score{font-size:18px;font-weight:700;flex-shrink:0}
+    .player-score.pos{color:var(--success)}.player-score.neg{color:var(--danger)}.player-score.z{color:var(--text-primary)}
+    .player-stats{display:flex;gap:12px;flex-wrap:wrap;margin-top:6px;font-size:12px;color:var(--text-secondary)}
+    .player-stats span{display:flex;align-items:center;gap:3px}
+    .player-stats .num{color:var(--primary-light);font-weight:600}
+    /* Flex layout for charts side by side */
+    .flex-row{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+    .flex-row > div{flex:1;min-width:140px}
+    @media (min-width: 700px) {
+      .container { max-width: 640px; padding: 24px; }
+      body { background: linear-gradient(135deg, #0a0e14 0%, #161B22 100%); }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <button class="share-btn" onclick="shareResult()">↗ 分享</button>
+    <h1 class="header-title">📊 分析与总结</h1>
+    <p class="header-subtitle">上海敲麻-好友局 · 智能复盘</p>
+  </header>
+  <main class="container"><div id="aiContent"><div class="ai-loading"><div class="ai-loading-icon">🧠</div><div class="ai-loading-text">正在分析对局数据...</div></div></div></main>
+  <div class="bottom-actions"><button class="restart-btn" onclick="goHome()">🀄 再来一局</button></div>
+  <script>
+    const COLORS=['#FF6B35','#4ECDC4','#51CF66','#FFD700','#D4537E','#378ADD','#BA7517','#639922'];
+    const PCOLORS=['#FF6B35','#4ECDC4','#51CF66','#FFD700'];
+
+    function goHome(){localStorage.removeItem('mahjongGameData');window.location.href='index.html'}
+    function goToPlayer(name){window.location.href='mahjong-ai-player.html?player='+encodeURIComponent(name)}
+    function shareResult(){
+      const raw=localStorage.getItem('mahjongGameData');
+      let text='🀄 上海敲麻 · 好友局对局报告\n';
+      if(raw){const d=JSON.parse(raw);const s=[...d.players].sort((a,b)=>b.score-a.score);
+        s.forEach((p,i)=>{const m=['🥇','🥈','🥉','4️⃣'];text+=`${m[i]||'🏅'} ${p.name} ${p.score>0?'+':''}${p.score}分\n`});
+        text+=`\n共${d.records.length}局 · 由 WorkBuddy AI 生成`;
+      }
+      // Web Share API (mobile)
+      if(navigator.share){navigator.share({title:'上海敲麻对局报告',text:text}).catch(()=>{});return}
+      // Fallback: execCommand (works on file://)
+      const ta=document.createElement('textarea');ta.value=text;
+      ta.style.position='fixed';ta.style.left='-9999px';ta.style.top='-9999px';
+      document.body.appendChild(ta);ta.select();
+      try{document.execCommand('copy')&&showToast('✅ 已复制到剪贴板')}catch(e){showToast('📋 复制失败，请手动复制')}
+      document.body.removeChild(ta);
+    }
+    function showToast(msg){const t=document.createElement('div');t.textContent=msg;
+      t.style.cssText='position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#161B22;color:#FFF;padding:12px 24px;border-radius:12px;font-size:14px;z-index:999;border:1px solid #30363D;transition:opacity .3s';
+      document.body.appendChild(t);setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),300)},1800)}
+
+    // hBar chart
+    function hBar(data,{w=460,barH=28,gap=8,leftW=70,colors=COLORS}){
+      if(!data||data.length===0) return '';
+      const maxVal=Math.max(...data.map(d=>Math.abs(d.val)))||1;
+      const barW=w-leftW-60;
+      const totalH=data.length*(barH+gap)+20;
+      let svg=`<svg viewBox="0 0 ${w} ${totalH}" width="100%" xmlns="http://www.w3.org/2000/svg" style="max-width:460px">`;
+      svg+=`<style>.bl{fill:#FFF;font-size:12px;font-family:sans-serif}.bvl{fill:#8B949E;font-size:11px;font-family:sans-serif}</style>`;
+      data.forEach((d,i)=>{
+        const y=i*(barH+gap)+10;const pct=Math.abs(d.val)/maxVal;
+        const fill=colors[i%colors.length];
+        svg+=`<text class="bl" x="${leftW-6}" y="${y+barH/2+4}" text-anchor="end">${d.label}</text>`;
+        svg+=`<rect x="${leftW}" y="${y}" width="${Math.max(3,pct*barW)}" height="${barH}" rx="4" fill="${fill}" opacity="0.85"/>`;
+        svg+=`<text class="bvl" x="${leftW+Math.max(3,pct*barW)+6}" y="${y+barH/2+4}">${d.val>0?'+':''}${d.val}</text>`;
+      });
+      svg+=`</svg>`;return svg;
+    }
+
+    // line chart
+    function lineChart(data,{w=460,h=180,colors=PCOLORS}){
+      if(!data||data.length<2) return '';
+      const padL=45,padR=20,padT=20,padB=30,cw=w-padL-padR,ch=h-padT-padB;
+      const allScores=data.flatMap(r=>r.scores.map(s=>s.score));
+      const max=Math.max(...allScores),min=Math.min(...allScores),range=Math.max(max-min,1);
+      const players=data[0].scores.map(s=>s.name);
+      let svg=`<svg viewBox="0 0 ${w} ${h}" width="100%" xmlns="http://www.w3.org/2000/svg" style="max-width:460px">`;
+      svg+=`<style>.la{stroke:#30363D;stroke-width:0.5}.lg{fill:#8B949E;font-size:10px;font-family:sans-serif;text-anchor:end}.ld{fill:#FFF;font-size:10px;font-family:sans-serif;text-anchor:middle}</style>`;
+      for(let i=0;i<=4;i++){const y=padT+ch*i/4;const val=Math.round(max-range*i/4);svg+=`<line class="la" x1="${padL}" y1="${y}" x2="${w-padR}" y2="${y}"/><text class="lg" x="${padL-6}" y="${y+4}">${val}</text>`}
+      players.forEach((p,pi)=>{
+        const pts=data.map((r,ri)=>{const s=r.scores.find(s=>s.name===p);if(!s)return null;return{x:padL+ri/(data.length-1)*cw,y:padT+(max-s.score)/range*ch}}).filter(p=>p);
+        if(pts.length<2) return;
+        const color=colors[pi%colors.length];let d=`M${pts[0].x} ${pts[0].y}`;
+        for(let i=1;i<pts.length;i++) d+=` L${pts[i].x} ${pts[i].y}`;
+        svg+=`<path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" opacity="0.85"/>`;
+        pts.forEach((pt,i)=>{svg+=`<circle cx="${pt.x}" cy="${pt.y}" r="3" fill="${color}" stroke="#0D1117" stroke-width="1.5"/>`;
+          if(i===pts.length-1) svg+=`<text class="ld" x="${pt.x}" y="${pt.y-10}" fill="${color}">${p}</text>`});
+      });
+      data.forEach((r,i)=>{svg+=`<text class="ld" x="${padL+i/(data.length-1)*cw}" y="${h-6}" fill="#8B949E">${i+1}</text>`});
+      svg+=`</svg>`;return svg;
+    }
+
+    // donut
+    function donutChart(data,{size=140,radius=52,innerR=32,colors=PCOLORS}){
+      if(!data||data.length===0) return '';
+      const total=data.reduce((s,d)=>s+d.val,0);if(total===0) return '';
+      let cum=0;const cx=size/2,cy=size/2;
+      let svg=`<svg viewBox="0 0 ${size} ${size}" width="${size}px" xmlns="http://www.w3.org/2000/svg">`;
+      svg+=`<style>.dt{fill:#FFF;font-size:12px;font-weight:bold;font-family:sans-serif;text-anchor:middle;dominant-baseline:central}.dts{fill:#8B949E;font-size:9px;font-family:sans-serif;text-anchor:middle;dominant-baseline:central}</style>`;
+      data.forEach((d,i)=>{
+        const pct=d.val/total;const angle=cum*360;cum+=pct;const endAngle=cum*360;
+        const lx1=cx+radius*Math.sin(angle*Math.PI/180);const ly1=cy-radius*Math.cos(angle*Math.PI/180);
+        const lx2=cx+radius*Math.sin(endAngle*Math.PI/180);const ly2=cy-radius*Math.cos(endAngle*Math.PI/180);
+        const largeArc=pct>0.5?1:0;const fill=colors[i%colors.length];
+        svg+=`<path d="M${cx} ${cy} L${lx1} ${ly1} A${radius} ${radius} 0 ${largeArc} 1 ${lx2} ${ly2} Z" fill="${fill}" opacity="0.85"/>`;
+      });
+      svg+=`<circle cx="${cx}" cy="${cy}" r="${innerR}" fill="#161B22"/>`;
+      svg+=`<text class="dt" x="${cx}" y="${cy-3}">${total}</text><text class="dts" x="${cx}" y="${cy+9}">胜局</text>`;
+      svg+=`</svg>`;return svg;
+    }
+
+    function generateAnalysis(){
+      const raw=localStorage.getItem('mahjongGameData');
+      if(!raw){document.getElementById('aiContent').innerHTML='<div class="no-data">暂无对局数据，请先完成一局游戏</div>';return}
+      const data=JSON.parse(raw);const players=data.players||[];const records=data.records||[];const cfg=data.config||{};
+      const totalRounds=records.length;const sorted=[...players].sort((a,b)=>b.score-a.score);
+      const winner=sorted[0],loser=sorted[sorted.length-1];
+
+      // Parse records
+      let zimo=0,huahu=0,natural=0,dianpaoTotal=0;
+      const winCount={},dianpaoCount={};
+      const patternStats={};
+      const PATS=['碰碰胡','清一色','混一色','平胡','杠开','七小对','开宝','无花果','天胡','地胡','花胡','门清'];
+
+      records.forEach(r=>{
+        if(r.icon==='🎯') zimo++;else if(r.icon==='🌺') huahu++;else if(r.icon==='🌟') natural++;
+        else if(r.icon==='💥') dianpaoTotal++;
+
+        const wn=r.desc.split(' ')[0];
+        if(wn) winCount[wn]=(winCount[wn]||0)+1;
+
+        if(r.icon==='💥'){const m=r.desc.match(/（(.+?)点炮）/);if(m) dianpaoCount[m[1]]=(dianpaoCount[m[1]]||0)+1}
+
+        const ws=r.desc.match(/[\u4e00-\u9fa5]{2,4}/g)||[];
+        ws.forEach(p=>{if(PATS.includes(p))patternStats[p]=(patternStats[p]||0)+1});
+      });
+
+      const snapshots=records.some(r=>r.scores&&r.scores.length>0)?[...records].reverse():[];
+      const now=new Date();const ts=`${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+      const winMethods=[{label:'自摸',val:zimo},{label:'点炮',val:dianpaoTotal},{label:'花胡',val:huahu},{label:'自然胡',val:natural}].filter(d=>d.val>0);
+
+      let html='';
+
+      // === Header overview ===
+      html+=`<div class="card"><div class="card-header">🏆 对局总览</div>`;
+      html+=`<p style="font-size:14px;margin-bottom:16px">本次好友局共 <strong style="color:var(--primary-light)">${totalRounds}局</strong> · 底${cfg.base} · 全场${cfg.multiplier}倍 · 封顶${cfg.ceilingNormal||50}分</p>`;
+      // Rank
+      sorted.forEach((p,i)=>{const m=['🥇','🥈','🥉','4️⃣'];const s=p.score>0?'+':'';const cls=p.score>0?'pos':p.score<0?'neg':'z';
+        html+=`<div class="player-row" style="cursor:pointer" onclick="goToPlayer('${p.name}')"><div class="player-rank">${m[i]||'🏅'}</div><div class="player-avatar">${p.avatar}</div><div class="player-info"><div class="player-name">${p.name}</div><div class="player-pos">${p.position}位</div></div><div class="player-score ${cls}">${s}${p.score}</div></div>`});
+      html+=`</div>`;
+
+      // === Score trend ===
+      if(snapshots.length>=2){
+        html+=`<div class="card"><div class="card-header">📈 得分走势</div><div class="chart-wrap">${lineChart(snapshots,{})}</div></div>`;
+      }
+
+      // === Win method donut + Pattern bar side by side ===
+      if(winMethods.length>0||Object.keys(patternStats).length>0){
+        html+=`<div class="card"><div class="card-header">🎯 胡牌方式 & 牌型统计</div><div class="flex-row">`;
+        if(winMethods.length>0){
+          html+=`<div style="text-align:center">${donutChart(winMethods,{})}<p style="font-size:12px;color:var(--text-secondary);margin-top:4px">胡牌方式分布</p></div>`;
+        }
+        const topPat=Object.entries(patternStats).sort((a,b)=>b[1]-a[1]).slice(0,5);
+        if(topPat.length>0){
+          html+=`<div style="flex:2;min-width:180px"><div class="chart-wrap" style="margin:0">${hBar(topPat.map(([k,v])=>({label:k,val:v})),{w:280,leftW:60,colors:['#4ECDC4','#51CF66','#FFD700','#D4537E','#378ADD']})}</div></div>`;
+        }
+        html+=`</div></div>`;
+      }
+
+      // === Dianpao ranking ===
+      const loseBars=Object.entries(dianpaoCount).sort((a,b)=>b[1]-a[1]).map(([k,v])=>({label:k,val:v}));
+      if(loseBars.length>0){
+        html+=`<div class="card"><div class="card-header">💥 放炮排行榜</div><div class="chart-wrap">${hBar(loseBars,{h:loseBars.length*36+20,colors:['#FF6B6B','#FF8F66','#D4537E']})}</div></div>`;
+      }
+
+      // === Win frequency ===
+      const winBars=Object.entries(winCount).sort((a,b)=>b[1]-a[1]).map(([k,v])=>({label:k,val:v}));
+      if(winBars.length>0){
+        html+=`<div class="card"><div class="card-header">🏆 胡牌频率</div><div class="chart-wrap">${hBar(winBars,{h:winBars.length*36+20,colors:PCOLORS})}</div></div>`;
+      }
+
+      // === Per-player analysis ===
+      html+=`<div class="card"><div class="card-header">👤 各选手分析</div>`;
+      sorted.forEach((p,i)=>{
+        const m=['🥇','🥈','🥉','4'];const medals=['🥇','🥈','🥉','🏅'];
+        const wins=winCount[p.name]||0;
+        const dps=dianpaoCount[p.name]||0;
+        const myZimo=records.filter(r=>r.icon==='🎯'&&r.desc.startsWith(p.name)).length;
+        const myHuahu=records.filter(r=>r.icon==='🌺'&&r.desc.startsWith(p.name)).length;
+        const myNatural=records.filter(r=>r.icon==='🌟'&&r.desc.startsWith(p.name)).length;
+        const myWinMethods=[myZimo>0?`自摸${myZimo}次`:null,myHuahu>0?`花胡${myHuahu}次`:null,myNatural>0?`自然胡${myNatural}次`:null].filter(Boolean).join('、');
+        const color=i===0?'color:#FFD700':i===1?'color:var(--secondary)':i===2?'color:#D4537E':'color:var(--text-secondary)';
+        html+=`<div style="border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px;background:rgba(255,255,255,0.02);cursor:pointer" onclick="goToPlayer('${p.name}')">`;
+        html+=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span style="font-size:20px">${m[i]}</span><span style="font-size:24px">${p.avatar}</span><span style="font-size:15px;font-weight:600">${p.name}</span><span style="font-size:12px;color:var(--text-secondary)">${p.position}位</span><span style="margin-left:auto;font-size:16px;font-weight:700;${color}">${p.score>0?'+':''}${p.score}</span></div>`;
+        html+=`<div style="display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--text-secondary)">`;
+        html+=`<span>🏆 胡牌 <strong style="color:var(--primary-light)">${wins}</strong> 次</span>`;
+        html+=`<span>💥 放炮 <strong style="color:var(--danger)">${dps}</strong> 次</span>`;
+        if(myWinMethods) html+=`<span style="flex-basis:100%;margin-top:4px">🎯 赢牌方式：${myWinMethods}</span>`;
+        html+=`</div></div>`;
+      });
+      html+=`</div>`;
+
+      // === AI text bubble ===
+      html+=`<div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:16px"><div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--secondary),var(--primary));display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🤖</div><div style="flex:1;background:rgba(255,255,255,0.04);border-radius:4px 16px 16px 16px;padding:14px 16px;border:1px solid var(--border);font-size:14px;line-height:1.7;color:var(--text-primary)">`;
+      html+=`<p><strong>综合评语</strong></p>`;
+      html+=`<p style="margin-top:8px">${winner.name} 以 <strong style="color:#FFD700">${winner.score>0?'+':''}${winner.score}分</strong> 夺得第一${sorted.length>1?`，领先第二名 ${winner.score-sorted[1].score} 分`:''}。</p>`;
+      const topPatName=Object.entries(patternStats).sort((a,b)=>b[1]-a[1])[0];
+      if(topPatName) html+=`<p style="margin-top:6px">最常用牌型：<strong style="color:var(--secondary)">${topPatName[0]}</strong>（${topPatName[1]}次）。</p>`;
+      if(winMethods.length>0){const topWM=winMethods.sort((a,b)=>b.val-a.val)[0];html+=`<p style="margin-top:6px">胡牌以 <strong style="color:var(--secondary)">${topWM.label}</strong> 为主（${topWM.val}次）。</p>`}
+      if(loseBars.length>0){const topDP=loseBars[0];html+=`<p style="margin-top:6px">放炮最多：<strong style="color:var(--danger)">${topDP.label}</strong>（${topDP.val}次）。</p>`}
+      if(loser&&winner.score-loser.score>100) html+=`<p style="margin-top:10px">💡 ${loser.name} 与冠军差距较大，建议多练习牌型和拆牌策略。</p>`;
+      html+=`<p style="margin-top:14px;font-size:12px;color:var(--text-secondary)">AI 分析 · ${ts}</p>`;
+      html+=`</div></div>`;
+
+      document.getElementById('aiContent').innerHTML=html;
+    }
+    document.addEventListener('DOMContentLoaded',()=>setTimeout(generateAnalysis,800));
+  </script>
+</body>
+</html>

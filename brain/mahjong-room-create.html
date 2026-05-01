@@ -2,6 +2,9 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>上海敲麻 - 创建房间</title>
   <style>
@@ -75,7 +78,8 @@
     /* ========== 主容器 ========== */
     .container {
       padding: 20px 16px 100px;
-      max-width: 100%;
+      margin: 0 auto;
+      max-width: 520px;
     }
 
     /* ========== 卡片 ========== */
@@ -477,6 +481,10 @@
       opacity: 1;
       transform: translate(-50%, -50%) scale(1);
     }
+    @media (min-width: 700px) {
+      .container { max-width: 640px; padding: 24px; }
+      body { background: linear-gradient(135deg, #0a0e14 0%, #161B22 100%); }
+    }
   </style>
 </head>
 <body>
@@ -606,6 +614,19 @@
 
       <div class="fan-row">
         <div class="fan-info">
+          <span class="fan-icon">🀄</span>
+          <span class="fan-name">平胡</span>
+        </div>
+        <div class="fan-stepper">
+          <button class="fan-stepper-btn minus" onclick="changeFan('pinghu', -1, this)">−</button>
+          <input class="fan-stepper-input" id="fan-pinghu" value="1" oninput="onFanInput('pinghu', this)">
+          <span style="font-size:12px; color:var(--text-secondary); margin-left:2px;">倍</span>
+          <button class="fan-stepper-btn plus" onclick="changeFan('pinghu', 1, this)">+</button>
+        </div>
+      </div>
+
+      <div class="fan-row">
+        <div class="fan-info">
           <span class="fan-icon">🎲</span>
           <span class="fan-name">杠开</span>
         </div>
@@ -643,32 +664,20 @@
         </div>
       </div>
 
-      <!-- 固定分数牌型 -->
-      <div style="font-size:13px; color:var(--primary-light); padding:16px 0 8px; font-weight:600;">固定分数牌型（可调分数，不乘倍数）</div>
+      <!-- 特殊牌型 -->
+      <div style="font-size:13px; color:var(--primary-light); padding:16px 0 8px; font-weight:600;">特殊牌型</div>
+      <div style="font-size:12px; color:var(--text-secondary); padding:0 0 8px;">无花果：加底后乘倍数，受封顶限制。天胡/地胡：固定分+底后乘倍数，不封顶。花胡：得分=封顶×3</div>
 
       <div class="fan-row">
         <div class="fan-info">
-          <span class="fan-icon">🌸</span>
-          <span class="fan-name">大无花</span>
+          <span class="fan-icon">🍇</span>
+          <span class="fan-name">无花果</span>
         </div>
         <div class="fan-stepper">
-          <button class="fan-stepper-btn minus" onclick="changeFan('dawuhua', -1, this)">−</button>
-          <input class="fan-stepper-input" id="fan-dawuhua" value="22" oninput="onFanInput('dawuhua', this)">
+          <button class="fan-stepper-btn minus" onclick="changeFan('wuhuaguo', -1, this)">−</button>
+          <input class="fan-stepper-input" id="fan-wuhuaguo" value="10" oninput="onFanInput('wuhuaguo', this)">
           <span style="font-size:12px; color:var(--text-secondary); margin-left:2px;">分</span>
-          <button class="fan-stepper-btn plus" onclick="changeFan('dawuhua', 1, this)">+</button>
-        </div>
-      </div>
-
-      <div class="fan-row">
-        <div class="fan-info">
-          <span class="fan-icon">🏵️</span>
-          <span class="fan-name">小无花</span>
-        </div>
-        <div class="fan-stepper">
-          <button class="fan-stepper-btn minus" onclick="changeFan('xiaowuhua', -1, this)">−</button>
-          <input class="fan-stepper-input" id="fan-xiaowuhua" value="11" oninput="onFanInput('xiaowuhua', this)">
-          <span style="font-size:12px; color:var(--text-secondary); margin-left:2px;">分</span>
-          <button class="fan-stepper-btn plus" onclick="changeFan('xiaowuhua', 1, this)">+</button>
+          <button class="fan-stepper-btn plus" onclick="changeFan('wuhuaguo', 1, this)">+</button>
         </div>
       </div>
 
@@ -679,7 +688,7 @@
         </div>
         <div class="fan-stepper">
           <button class="fan-stepper-btn minus" onclick="changeFan('tianhu', -1, this)">−</button>
-          <input class="fan-stepper-input" id="fan-tianhu" value="75" oninput="onFanInput('tianhu', this)">
+          <input class="fan-stepper-input" id="fan-tianhu" value="150" oninput="onFanInput('tianhu', this)">
           <span style="font-size:12px; color:var(--text-secondary); margin-left:2px;">分</span>
           <button class="fan-stepper-btn plus" onclick="changeFan('tianhu', 1, this)">+</button>
         </div>
@@ -692,7 +701,7 @@
         </div>
         <div class="fan-stepper">
           <button class="fan-stepper-btn minus" onclick="changeFan('dihu', -1, this)">−</button>
-          <input class="fan-stepper-input" id="fan-dihu" value="75" oninput="onFanInput('dihu', this)">
+          <input class="fan-stepper-input" id="fan-dihu" value="150" oninput="onFanInput('dihu', this)">
           <span style="font-size:12px; color:var(--text-secondary); margin-left:2px;">分</span>
           <button class="fan-stepper-btn plus" onclick="changeFan('dihu', 1, this)">+</button>
         </div>
@@ -705,8 +714,8 @@
         </div>
         <div class="fan-stepper">
           <button class="fan-stepper-btn minus" onclick="changeFan('huahu', -1, this)">−</button>
-          <input class="fan-stepper-input" id="fan-huahu" value="75" oninput="onFanInput('huahu', this)">
-          <span style="font-size:12px; color:var(--text-secondary); margin-left:2px;">分</span>
+          <input class="fan-stepper-input" id="fan-huahu" value="13" oninput="onFanInput('huahu', this)">
+          <span style="font-size:12px; color:var(--text-secondary); margin-left:2px;">个花</span>
           <button class="fan-stepper-btn plus" onclick="changeFan('huahu', 1, this)">+</button>
         </div>
       </div>
@@ -761,7 +770,7 @@
 
   <script>
     // 状态
-    let state = {
+    let     state = {
       score: 100,
       base: 1,           // 底
       multiplier: 5,       // 全场倍数（默认5倍）
@@ -769,14 +778,14 @@
         pengpeng: 2,      // 碰碰胡 2倍
         qingyise: 3,      // 清一色 3倍
         hunyise: 2,        // 混一色 2倍
+        pinghu: 1,          // 平胡 1倍
         gangkai: 2,        // 杠开 2倍
         qixiaodui: 2,      // 七小对 2倍
         kaibao: 2,         // 开宝 2倍
-        dawuhua: 22,       // 大无花 22分
-        xiaowuhua: 11,     // 小无花 11分
-        tianhu: 75,        // 天胡 75分
-        dihu: 75,          // 地胡 75分
-        huahu: 75,         // 花胡 75分
+        wuhuaguo: 10,      // 无花果 10分
+        tianhu: 150,        // 天胡 150分
+        dihu: 150,          // 地胡 150分
+        huahu: 13,          // 花胡 13（代表花数）
       },
       ceilingNormal: 50,    // 普通局封顶
       ceilingKaibao: 2,     // 开宝局封顶倍数
@@ -843,21 +852,26 @@
         return;
       }
 
+      // 读取传入的昵称
+      const params = new URLSearchParams(window.location.search);
+      const nickname = params.get('nickname') || '';
+
       // 构建参数传递给等待室
-      const params = new URLSearchParams({
+      const roomParams = new URLSearchParams({
         score: state.score,
         base: state.base,
         multiplier: state.multiplier,
         ceilingNormal: ceilingNormal,
         ceilingKaibao: ceilingKaibao,
+        nickname: nickname,
         pengpeng: document.getElementById('fan-pengpeng').value,
         qingyise: document.getElementById('fan-qingyise').value,
         hunyise: document.getElementById('fan-hunyise').value,
+        pinghu: document.getElementById('fan-pinghu').value,
         gangkai: document.getElementById('fan-gangkai').value,
         qixiaodui: document.getElementById('fan-qixiaodui').value,
         kaibao: document.getElementById('fan-kaibao').value,
-        dawuhua: document.getElementById('fan-dawuhua').value,
-        xiaowuhua: document.getElementById('fan-xiaowuhua').value,
+        wuhuaguo: document.getElementById('fan-wuhuaguo').value,
         tianhu: document.getElementById('fan-tianhu').value,
         dihu: document.getElementById('fan-dihu').value,
         huahu: document.getElementById('fan-huahu').value,
@@ -865,7 +879,7 @@
 
       showToast('房间创建成功！');
       setTimeout(() => {
-        window.location.href = 'mahjong-waiting-room.html?' + params.toString();
+        window.location.href = 'mahjong-waiting-room.html?' + roomParams.toString();
       }, 1000);
     }
   </script>

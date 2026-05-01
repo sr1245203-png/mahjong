@@ -1,0 +1,37 @@
+<view class="page">
+  <view class="profile-card">
+    <text class="p-avatar">{{player.avatar}}</text>
+    <text class="p-name">{{player.name}}</text>
+    <text class="p-rank">{{medal}} 第{{rank}}名 · {{player.position}}位</text>
+    <text class="p-score {{player.score > 0 ? 'pos' : 'neg'}}">{{player.score > 0 ? '+' : ''}}{{player.score}}</text>
+  </view>
+
+  <view class="card">
+    <view class="card-title">📊 数据概览</view>
+    <view class="stat-grid">
+      <view class="stat-item"><text class="sn" style="color:#FF6B35">{{stats.wins}}</text><text class="sl">胜局</text></view>
+      <view class="stat-item"><text class="sn" style="color:#FF6B6B">{{stats.loses}}</text><text class="sl">放炮</text></view>
+      <view class="stat-item"><text class="sn" style="color:#4ECDC4">{{stats.zimo}}</text><text class="sl">自摸</text></view>
+    </view>
+  </view>
+
+  <view class="card" wx:if="{{rival.kexing}}">
+    <view class="card-title">🗡️ 冤家分析</view>
+    <view class="rival-item">
+      <text class="rival-icon">🔴</text>
+      <view class="rival-info">
+        <text class="rival-label">克星：{{rival.kexing}}</text>
+        <text class="rival-sub">你放炮给他 {{rival.kexingCount}} 次</text>
+      </view>
+    </view>
+    <view class="rival-item" wx:if="{{rival.tikuanji}}">
+      <text class="rival-icon">🟢</text>
+      <view class="rival-info">
+        <text class="rival-label">提款机：{{rival.tikuanji}}</text>
+        <text class="rival-sub">他放炮给你 {{rival.tikuanjiCount}} 次</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="home-btn" bindtap="goBack">📊 返回总览</view>
+</view>

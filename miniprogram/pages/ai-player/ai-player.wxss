@@ -1,0 +1,21 @@
+page { background: #0D1117; }
+.page { padding: 16px; max-width: 520px; margin: 0 auto; padding-bottom: 80px; }
+.profile-card { text-align: center; background: #161B22; border-radius: 16px; padding: 24px; margin-bottom: 16px; border: 1px solid #30363D; }
+.p-avatar { font-size: 48px; display: block; }
+.p-name { font-size: 20px; font-weight: 700; color: #FFF; margin-top: 4px; display: block; }
+.p-rank { font-size: 13px; color: #8B949E; margin-top: 4px; display: block; }
+.p-score { font-size: 30px; font-weight: 700; margin-top: 4px; display: block; }
+.p-score.pos { color: #51CF66; }
+.p-score.neg { color: #FF6B6B; }
+.card { background: #161B22; border-radius: 16px; padding: 16px; margin-bottom: 12px; border: 1px solid #30363D; }
+.card-title { font-size: 15px; font-weight: 600; color: #FFF; margin-bottom: 12px; }
+.stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.stat-item { text-align: center; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 10px; border: 1px solid #30363D; }
+.sn { font-size: 22px; font-weight: 700; display: block; }
+.sl { font-size: 11px; color: #8B949E; margin-top: 2px; display: block; }
+.rival-item { display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 10px; margin-bottom: 6px; background: rgba(255,255,255,0.03); border: 1px solid #30363D; }
+.rival-icon { font-size: 18px; }
+.rival-info { flex: 1; }
+.rival-label { font-size: 14px; font-weight: 600; color: #FFF; display: block; }
+.rival-sub { font-size: 12px; color: #8B949E; }
+.home-btn { width: 100%; height: 50px; border-radius: 25px; background: linear-gradient(135deg, #FF6B35, #FF8F66); border: none; color: #FFF; font-size: 16px; font-weight: 600; line-height: 50px; text-align: center; }

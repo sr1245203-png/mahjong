@@ -1,0 +1,18 @@
+<view class="page">
+  <view class="header">🏆 对局总结</view>
+  <view class="card">
+    <view class="rank-list" wx:for="{{rankList}}" wx:key="index">
+      <view class="rank-item">
+        <text class="rank-medal">{{item.medal}}</text>
+        <text class="rank-avatar">{{item.avatar}}</text>
+        <view class="rank-info">
+          <text class="rank-name">{{item.name}}</text>
+          <text class="rank-pos">{{item.position}}位</text>
+        </view>
+        <text class="rank-score {{item.score > 0 ? 'pos' : 'neg'}}">{{item.score > 0 ? '+' : ''}}{{item.score}}</text>
+      </view>
+    </view>
+  </view>
+  <button class="action-btn" bindtap="goAnalysis">📊 分析与总结</button>
+  <button class="action-btn primary" bindtap="goHome">🀄 再来一局</button>
+</view>

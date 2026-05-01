@@ -1,0 +1,49 @@
+<view class="page">
+  <view class="room-id" wx:if="{{roomId}}">
+    <text class="room-label">房间号</text>
+    <text class="room-value">{{roomId}}</text>
+  </view>
+
+  <view class="share-hint" wx:if="{{isOwner}}">
+    <button class="share-btn" open-type="share" bindtap="onShare">📤 邀请好友加入</button>
+    <view class="hint-text">分享到微信群后，好友点击即可加入</view>
+  </view>
+
+  <view class="seats-grid">
+    <view class="seat-card" wx:for="{{seats}}" wx:key="index">
+      <block wx:if="{{item}}">
+        <view class="seat-badge" wx:if="{{item.isOwner}}">房主</view>
+        <image class="seat-avatar" src="{{item.avatarUrl || ''}}" mode="aspectFill" wx:if="{{item.avatarUrl}}"></image>
+        <text class="seat-avatar-text" wx:else>{{item.avatarEmoji || '🀄'}}</text>
+        <text class="seat-name">{{item.name}}</text>
+        <view class="seat-status ready">✅ 已准备</view>
+      </block>
+      <block wx:else>
+        <view class="seat-empty">
+          <text class="seat-empty-icon">+</text>
+          <text class="seat-empty-text">等待加入</text>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <view class="rules-card" wx:if="{{config}}">
+    <view class="rules-title">📋 游戏规则</view>
+    <view class="rules-grid">
+      <view class="rule-item" wx:for="{{rules}}" wx:key="key">
+        <text class="rule-label">{{item.label}}</text>
+        <text class="rule-value">{{item.value}}</text>
+      </view>
+    </view>
+  </view>
+
+  <button class="start-btn" wx:if="{{isOwner && seatCount >= 4}}" bindtap="startGame">
+    🎲 开始游戏
+  </button>
+  <view class="start-btn disabled" wx:if="{{!isOwner && seatCount < 4}}">
+    等待房主开始游戏...
+  </view>
+  <view class="wait-text" wx:if="{{isOwner && seatCount < 4}}">
+    已有 {{seatCount}}/4 人，人齐后开始
+  </view>
+</view>

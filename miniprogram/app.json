@@ -1,0 +1,21 @@
+{
+  "pages": [
+    "pages/fortune/fortune",
+    "pages/room-create/room-create",
+    "pages/waiting-room/waiting-room",
+    "pages/game-score/game-score",
+    "pages/game-summary/game-summary",
+    "pages/ai-summary/ai-summary",
+    "pages/ai-player/ai-player"
+  ],
+  "window": {
+    "navigationBarTitleText": "上海敲麻",
+    "navigationBarBackgroundColor": "#0D1117",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#0D1117",
+    "backgroundTextStyle": "dark"
+  },
+  "usingComponents": {},
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

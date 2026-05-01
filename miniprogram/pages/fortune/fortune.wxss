@@ -1,0 +1,49 @@
+/* pages/fortune/fortune.wxss */
+page { background: #0D1117; min-height: 100vh; }
+.page { padding: 20px 16px 40px; max-width: 520px; margin: 0 auto; }
+
+.welcome-section { text-align: center; padding-top: 80px; }
+.logo { font-size: 64px; margin-bottom: 12px; }
+.title { font-size: 28px; font-weight: 700; color: #FFF; }
+.subtitle { font-size: 14px; color: #8B949E; margin-top: 6px; }
+.login-btn {
+  width: 80%; margin-top: 40px; height: 48px; border-radius: 24px;
+  background: linear-gradient(135deg, #FF6B35, #FF8F66); border: none;
+  color: white; font-size: 16px; font-weight: 600; line-height: 48px;
+}
+.tip { margin-top: 12px; font-size: 12px; color: #8B949E; }
+
+.fortune-section { text-align: center; }
+.user-header { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 30px; }
+.user-avatar { width: 44px; height: 44px; border-radius: 50%; }
+.user-name { font-size: 18px; font-weight: 600; color: #FFF; }
+
+.fortune-card {
+  background: #161B22; border-radius: 16px; padding: 30px 20px;
+  border: 1px solid #30363D; text-align: center;
+}
+.card-icon { font-size: 48px; margin-bottom: 10px; }
+.card-title { font-size: 18px; font-weight: 600; color: #FFF; }
+.card-desc { font-size: 13px; color: #8B949E; margin-top: 4px; }
+.date-picker {
+  display: inline-block; padding: 10px 24px; margin: 20px 0;
+  border-radius: 12px; background: rgba(255,255,255,0.06);
+  border: 1px solid #30363D; color: #FFF; font-size: 15px;
+}
+.action-btn {
+  width: 80%; height: 48px; border-radius: 24px; margin-top: 16px;
+  background: rgba(78,205,196,0.15); border: 1px solid rgba(78,205,196,0.4);
+  color: #4ECDC4; font-size: 15px; font-weight: 600; line-height: 48px;
+}
+.action-btn.primary {
+  background: linear-gradient(135deg, #FF6B35, #FF8F66); border: none; color: #FFF;
+}
+
+.result-section { text-align: center; padding-top: 10px; }
+.result-icon { font-size: 64px; margin-bottom: 12px; }
+.result-text { font-size: 18px; font-weight: 600; color: #FFF; }
+.result-tags { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 16px 0; }
+.tag {
+  padding: 4px 14px; border-radius: 20px; font-size: 13px;
+  background: rgba(78,205,196,0.12); color: #4ECDC4;
+}

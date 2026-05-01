@@ -1,0 +1,76 @@
+<view class="page">
+  <!-- 顶部信息和积分 -->
+  <view class="top-bar">
+    <view class="round-text">第{{round}}局</view>
+    <view class="players-bar">
+      <view class="player-chip {{p.id === winnerId ? 'active' : ''}}" wx:for="{{players}}" wx:key="id" data-id="{{p.id}}" bindtap="selectWinner">
+        <text class="chip-avatar">{{p.avatar}}</text>
+        <text class="chip-name">{{p.name}}</text>
+        <text class="chip-score {{p.score > 0 ? 'pos' : p.score < 0 ? 'neg' : ''}}">{{p.score > 0 ? '+' : ''}}{{p.score}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 语音按钮 -->
+  <view class="voice-bar">
+    <button class="voice-btn {{isRecording ? 'recording' : ''}}" bindtap="toggleVoice">
+      🎤 {{isRecording ? '🔴 结束录音' : '点我录音'}}
+    </button>
+  </view>
+  <view class="voice-status">{{voiceStatus}}</view>
+
+  <!-- 花数选择 -->
+  <view class="section">
+    <view class="section-label">🌸 花数</view>
+    <view class="flower-control">
+      <button class="flower-btn" bindtap="changeFlower" data-delta="-1">−</button>
+      <text class="flower-value">{{flowerCount}}</text>
+      <button class="flower-btn" bindtap="changeFlower" data-delta="+1">+</button>
+    </view>
+  </view>
+
+  <!-- 牌型选择 -->
+  <view class="section">
+    <view class="section-label">🎯 牌型（可多选）</view>
+    <view class="pattern-grid">
+      <view class="pattern-btn {{p.selected ? 'active' : ''}}" wx:for="{{patterns}}" wx:key="name" bindtap="togglePattern" data-name="{{p.name}}">
+        <text class="pattern-text">{{p.name}}</text>
+        <text class="pattern-sub">{{p.display}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 点炮人选择 -->
+  <view class="section" wx:if="{{showDianpao}}">
+    <view class="section-label">💥 选择点炮人</view>
+    <view class="dianpao-grid">
+      <view class="dianpao-btn {{p.selected ? 'active' : ''}}" wx:for="{{dianpaoPlayers}}" wx:key="id" bindtap="selectDianpao" data-id="{{p.id}}">
+        {{p.avatar}} {{p.name}}
+      </view>
+    </view>
+  </view>
+
+  <!-- 预览和确认 -->
+  <view class="preview-bar">
+    <view class="preview-text">预估分数变化</view>
+    <view class="preview-value {{previewScore > 0 ? 'pos' : ''}}">{{previewScore > 0 ? '+' : ''}}{{previewScore}}</view>
+  </view>
+
+  <button class="confirm-btn" disabled="{{!canConfirm}}" bindtap="confirmScore">✅ 确认记分</button>
+
+  <!-- 记分记录 -->
+  <view class="records-section" wx:if="{{records.length > 0}}">
+    <view class="records-title">📝 记分记录</view>
+    <view class="record-item" wx:for="{{records}}" wx:key="index">
+      <text class="record-icon">{{item.icon}}</text>
+      <view class="record-info">
+        <text class="record-desc">{{item.desc}}</text>
+        <text class="record-time">{{item.time}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="end-section">
+    <button class="end-btn" bindtap="endGame">🏁 结束对局</button>
+  </view>
+</view>

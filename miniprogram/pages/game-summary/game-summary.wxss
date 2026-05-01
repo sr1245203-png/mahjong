@@ -1,0 +1,16 @@
+page { background: #0D1117; }
+.page { padding: 16px; max-width: 520px; margin: 0 auto; }
+.header { font-size: 22px; font-weight: 700; color: #FFF; text-align: center; padding: 20px 0; }
+.card { background: #161B22; border-radius: 16px; padding: 16px; margin-bottom: 16px; border: 1px solid #30363D; }
+.rank-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.rank-item:last-child { border-bottom: none; }
+.rank-medal { font-size: 20px; width: 30px; }
+.rank-avatar { font-size: 24px; }
+.rank-info { flex: 1; }
+.rank-name { font-size: 15px; font-weight: 600; color: #FFF; display: block; }
+.rank-pos { font-size: 11px; color: #8B949E; }
+.rank-score { font-size: 18px; font-weight: 700; }
+.rank-score.pos { color: #51CF66; }
+.rank-score.neg { color: #FF6B6B; }
+.action-btn { width: 100%; height: 48px; border-radius: 24px; margin-bottom: 12px; background: rgba(78,205,196,0.12); border: 1px solid rgba(78,205,196,0.4); color: #4ECDC4; font-size: 15px; font-weight: 600; line-height: 48px; }
+.action-btn.primary { background: linear-gradient(135deg, #FF6B35, #FF8F66); border: none; color: #FFF; }

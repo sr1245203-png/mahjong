@@ -1,0 +1,41 @@
+<view class="page">
+  <!-- 登录前 -->
+  <view class="welcome-section" wx:if="{{!logined}}">
+    <view class="logo">🀄</view>
+    <view class="title">上海敲麻</view>
+    <view class="subtitle">好友局记分工具</view>
+    <button class="login-btn" open-type="getUserInfo" bindgetuserinfo="onGetUserInfo">
+      🔓 微信一键登录
+    </button>
+    <view class="tip">登录后获取微信昵称和头像</view>
+  </view>
+
+  <!-- 登录后 → 运势测算 -->
+  <view class="fortune-section" wx:else>
+    <view class="user-header">
+      <image class="user-avatar" src="{{avatarUrl}}" mode="aspectFill"></image>
+      <text class="user-name">{{nickName}}</text>
+    </view>
+
+    <view class="fortune-card" wx:if="{{!fortuneDone}}">
+      <view class="card-icon">🔮</view>
+      <view class="card-title">今日运势测算</view>
+      <view class="card-desc">测算完成后可创建房间</view>
+      <picker mode="date" value="{{birthday}}" bindchange="onBirthdayChange" disabled="{{fortuneLoading}}">
+        <view class="date-picker">{{birthday || '选择出生日期'}}</view>
+      </picker>
+      <button class="action-btn" bindtap="startFortune" disabled="{{!birthday || fortuneLoading}}">
+        {{fortuneLoading ? '测算中...' : '🔮 开始测算'}}
+      </button>
+    </view>
+
+    <view class="result-section" wx:if="{{fortuneDone}}">
+      <view class="result-icon">{{fortuneIcon}}</view>
+      <view class="result-text">{{fortuneText}}</view>
+      <view class="result-tags">
+        <text class="tag" wx:for="{{fortuneTags}}" wx:key="*this">{{item}}</text>
+      </view>
+      <button class="action-btn primary" bindtap="goCreateRoom">🎲 开始创建房间</button>
+    </view>
+  </view>
+</view>

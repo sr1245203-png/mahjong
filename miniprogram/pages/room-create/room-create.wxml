@@ -1,0 +1,65 @@
+<view class="page">
+  <view class="card">
+    <view class="section-title">🎯 游戏规则</view>
+    <view class="form-item">
+      <text class="form-label">底</text>
+      <view class="form-control">
+        <picker mode="selector" range="{{baseOptions}}" value="{{config.baseIndex}}" bindchange="onBaseChange">
+          <text class="form-value">{{config.base}}分</text>
+        </picker>
+      </view>
+    </view>
+    <view class="form-item">
+      <text class="form-label">每局初始积分</text>
+      <view class="form-control">
+        <picker mode="selector" range="{{scoreOptions}}" value="{{config.scoreIndex}}" bindchange="onScoreChange">
+          <text class="form-value">{{config.score}}分</text>
+        </picker>
+      </view>
+    </view>
+    <view class="form-item">
+      <text class="form-label">全场倍数</text>
+      <view class="form-control">
+        <slider min="1" max="5" step="1" value="{{config.multiplier}}" bindchange="onMultiplierChange" show-value block-size="18" backgroundColor="#30363D" activeColor="#FF6B35"/>
+      </view>
+    </view>
+    <view class="form-item">
+      <text class="form-label">普通封顶</text>
+      <view class="form-control">
+        <picker mode="selector" range="{{ceilingOptions}}" value="{{config.ceilingIndex}}" bindchange="onCeilingChange">
+          <text class="form-value">{{config.ceiling}}分</text>
+        </picker>
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">🀄 牌型设置</view>
+    <view class="pattern-grid">
+      <view class="pattern-item" wx:for="{{patterns}}" wx:key="index">
+        <view class="pattern-name">{{item.name}}</view>
+        <view class="pattern-control">
+          <picker mode="selector" range="{{item.options}}" value="{{item.valIndex}}" bindchange="onPatternChange" data-index="{{index}}">
+            <text class="form-value">{{item.val}}{{item.unit}}</text>
+          </picker>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">🎲 特殊规则</view>
+    <view class="pattern-grid">
+      <view class="pattern-item" wx:for="{{specials}}" wx:key="index">
+        <view class="pattern-name">{{item.name}}</view>
+        <view class="pattern-control">
+          <picker mode="selector" range="{{item.options}}" value="{{item.valIndex}}" bindchange="onSpecialChange" data-index="{{index}}">
+            <text class="form-value">{{item.val}}{{item.unit}}</text>
+          </picker>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <button class="create-btn" bindtap="createRoom">🎲 创建房间</button>
+</view>

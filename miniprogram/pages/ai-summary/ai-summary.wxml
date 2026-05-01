@@ -1,0 +1,32 @@
+<view class="page">
+  <view class="header">📊 分析与总结</view>
+  <view class="card">
+    <view class="card-title">🏆 最终排名</view>
+    <view class="rank-item" wx:for="{{rankList}}" wx:key="index">
+      <text class="medal">{{item.medal}}</text>
+      <text class="av">{{item.avatar}}</text>
+      <view class="info">
+        <text class="name">{{item.name}}</text>
+        <text class="pos">{{item.position}}位</text>
+      </view>
+      <text class="score {{item.score > 0 ? 'pos' : 'neg'}}">{{item.score > 0 ? '+' : ''}}{{item.score}}</text>
+    </view>
+  </view>
+  <view class="card" wx:if="{{totalRounds > 0}}">
+    <view class="card-title">📈 数据概览</view>
+    <text class="stat-line">共 {{totalRounds}} 局 · 底{{cfg.base}} · 全场{{cfg.multiplier}}倍 · 封顶{{cfg.ceiling}}分</text>
+  </view>
+
+  <view class="player-card" wx:for="{{players}}" wx:key="index" data-name="{{item.name}}" bindtap="goPlayer" wx:if="{{item.name}}">
+    <text class="p-medal">{{item.medal}}</text>
+    <text class="p-av">{{item.avatar}}</text>
+    <view class="p-info">
+      <text class="p-name">{{item.name}}</text>
+      <text class="p-pos">{{item.position}}位</text>
+    </view>
+    <text class="p-score {{item.score > 0 ? 'pos' : 'neg'}}">{{item.score > 0 ? '+' : ''}}{{item.score}}</text>
+  </view>
+
+  <view class="bottom-hint">👆 点击选手查看个人分析</view>
+  <button class="home-btn" bindtap="goHome">🀄 再来一局</button>
+</view>

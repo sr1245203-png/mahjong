@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>上海敲麻 - 选手分析</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    :root{--primary:#FF6B35;--primary-light:#FF8F66;--secondary:#4ECDC4;--success:#51CF66;--danger:#FF6B6B;--bg-dark:#0D1117;--bg-card:#161B22;--text-primary:#FFF;--text-secondary:#8B949E;--border:#30363D}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;background:var(--bg-dark);color:var(--text-primary);min-height:100vh;padding-bottom:calc(100px+env(safe-area-inset-bottom))}
+    .header{background:linear-gradient(180deg,#1a1f2e 0%,var(--bg-dark)100%);padding:24px 16px 32px;text-align:center;position:relative}
+    .back-btn{position:absolute;left:16px;top:24px;width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+    .header-title{font-size:18px;font-weight:700}
+    .header-subtitle{font-size:12px;color:var(--text-secondary);margin-top:2px}
+    .container{padding:16px;max-width:520px;margin:0 auto}
+    .card{background:var(--bg-card);border-radius:16px;padding:20px;margin-bottom:16px;border:1px solid var(--border)}
+    .card-hd{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+    .chart-wrap{width:100%;overflow-x:auto;text-align:center;margin:8px 0}
+    .chart-wrap svg{display:block;margin:0 auto;max-width:100%}
+    .ai-loading{text-align:center;padding:60px 0}
+    .ai-loading-icon{font-size:48px;margin-bottom:16px;animation:pulse 1.5s ease-in-out infinite}
+    @keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.1);opacity:0.6}}
+    .ai-loading-text{font-size:14px;color:var(--text-secondary)}
+    .bottom-actions{position:fixed;bottom:0;left:0;right:0;padding:16px;padding-bottom:calc(16px+env(safe-area-inset-bottom));background:linear-gradient(180deg,transparent 0%,var(--bg-dark)30%)}
+    .back-btn2{width:100%;height:52px;border-radius:26px;background:linear-gradient(135deg,var(--primary),var(--primary-light));border:none;color:#fff;font-size:17px;font-weight:600;cursor:pointer;box-shadow:0 4px 20px rgba(255,107,53,0.4);transition:all .2s}
+    .back-btn2:active{transform:scale(.98)}
+    .no-data{text-align:center;color:var(--text-secondary);padding:60px 0;font-size:14px}
+    /* Stats grid */
+    .sg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+    .si{text-align:center;padding:12px;border-radius:10px;background:rgba(255,255,255,0.03);border:1px solid var(--border)}
+    .sn{font-size:22px;font-weight:700}
+    .sl{font-size:11px;color:var(--text-secondary);margin-top:2px}
+    /* Tags */
+    .tag{display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;margin:3px}
+    .tag-off{background:rgba(255,107,53,0.2);color:var(--primary-light)}
+    .tag-def{background:rgba(78,205,196,0.2);color:var(--secondary)}
+    .tag-risk{background:rgba(255,107,107,0.2);color:var(--danger)}
+    .tag-win{background:rgba(81,207,102,0.2);color:var(--success)}
+    /* Rival cards */
+    .rival{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;margin-bottom:8px;border:1px solid var(--border);background:rgba(255,255,255,0.03)}
+    .rival-av{font-size:24px;flex-shrink:0}
+    .rival-info{flex:1;min-width:0}
+    .rival-name{font-size:14px;font-weight:600}
+    .rival-sub{font-size:11px;color:var(--text-secondary)}
+    .rival-val{font-size:16px;font-weight:700;flex-shrink:0}
+    .rival-val.bad{color:var(--danger)}.rival-val.good{color:var(--success)}
+    /* Opponent intel */
+    .intel{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;margin-bottom:8px;border:1px solid var(--border);background:rgba(255,255,255,0.03)}
+    .intel-av{font-size:20px;flex-shrink:0;width:32px;text-align:center}
+    .intel-info{flex:1}
+    .intel-title{font-size:14px;font-weight:600}
+    .intel-sub{font-size:12px;color:var(--text-secondary);margin-top:2px;line-height:1.5}
+    .intel-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+    /* Moment card */
+    .moment{padding:14px 16px;border-radius:12px;margin-bottom:10px;border:1px solid var(--border)}
+    .moment.high{background:rgba(81,207,102,0.06);border-color:rgba(81,207,102,0.2)}
+    .moment.low{background:rgba(255,107,107,0.06);border-color:rgba(255,107,107,0.2)}
+    .moment-icon{font-size:20px;margin-bottom:4px}
+    .moment-desc{font-size:14px;line-height:1.5}
+    .moment-sub{font-size:11px;color:var(--text-secondary);margin-top:4px}
+    /* Line chart inline */
+    .lchart{width:100%;max-width:440px}
+    @media (min-width: 700px) {
+      .container { max-width: 640px; padding: 24px; }
+      body { background: linear-gradient(135deg, #0a0e14 0%, #161B22 100%); }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <button class="back-btn" onclick="history.back()">‹</button>
+    <h1 class="header-title" id="playerTitle">个人分析</h1>
+    <p class="header-subtitle">上海敲麻-好友局 · 个人视角</p>
+  </header>
+  <main class="container"><div id="pc"><div class="ai-loading"><div class="ai-loading-icon">🧠</div><div class="ai-loading-text">正在分析选手数据...</div></div></div></main>
+  <div class="bottom-actions"><button class="back-btn2" onclick="history.back()">📊 返回总览</button></div>
+
+  <script>
+    const NAMES={}; const PATS=['碰碰胡','清一色','混一色','平胡','杠开','七小对','开宝','无花果','天胡','地胡','花胡','门清'];
+    const LABELS=['🥇冠军','🥈亚军','🥉季军','4']; const MEDALS=['🥇','🥈','🥉','🏅'];
+
+    function hBar(data,{w=440,barH=26,gap=8,leftW=70,colors}){
+      if(!data||!data.length) return '';
+      const mx=Math.max(...data.map(d=>Math.abs(d.val)))||1;
+      const bw=w-leftW-50,th=data.length*(barH+gap)+20; const cs=colors||['#4ECDC4','#51CF66','#FFD700','#D4537E','#378ADD','#BA7517'];
+      let s=`<svg viewBox="0 0 ${w} ${th}" width="100%" xmlns="http://www.w3.org/2000/svg"><style>.bl{fill:#FFF;font-size:12px;font-family:sans-serif}.bvl{fill:#8B949E;font-size:11px;font-family:sans-serif}</style>`;
+      data.forEach((d,i)=>{const y=i*(barH+gap)+10;const p=Math.abs(d.val)/mx;const c=cs[i%cs.length];
+        s+=`<text class="bl" x="${leftW-6}" y="${y+barH/2+4}" text-anchor="end">${d.label}</text>`;
+        s+=`<rect x="${leftW}" y="${y}" width="${Math.max(3,p*bw)}" height="${barH}" rx="4" fill="${c}" opacity="0.85"/>`;
+        s+=`<text class="bvl" x="${leftW+Math.max(3,p*bw)+6}" y="${y+barH/2+4}">${d.val}</text>`;});
+      s+=`</svg>`;return s;
+    }
+
+    function lineSvg(data,me,w=420,h=140){
+      if(!data||data.length<2) return'';
+      const tl=w-50,th=h-40;
+      const mx=Math.max(...data),mn=Math.min(...data),r=Math.max(mx-mn,1);
+      let s=`<svg viewBox="0 0 ${w} ${h}" width="100%" xmlns="http://www.w3.org/2000/svg" class="lchart"><style>.gl{stroke:#30363D;stroke-width:0.5}.gt{fill:#8B949E;font-size:10px;font-family:sans-serif;text-anchor:end}.gx{fill:#8B949E;font-size:10px;font-family:sans-serif;text-anchor:middle}</style>`;
+      for(let i=0;i<=3;i++){const y=20+th*i/3;const v=Math.round(mx-r*i/3);s+=`<line class="gl" x1="45" y1="${y}" x2="${w-5}" y2="${y}"/><text class="gt" x="38" y="${y+4}">${v}</text>`}
+      let d='';data.forEach((sc,i)=>{const x=45+i/(data.length-1)*tl;const y=20+(mx-sc)/r*th;if(i===0)d=`M${x} ${y}`;else d+=` L${x} ${y}`;});
+      s+=`<path d="${d}" fill="none" stroke="#FF6B35" stroke-width="2.5" stroke-linejoin="round"/>`;
+      data.forEach((sc,i)=>{const x=45+i/(data.length-1)*tl;const y=20+(mx-sc)/r*th;s+=`<circle cx="${x}" cy="${y}" r="4" fill="#FF6B35" stroke="#0D1117" stroke-width="1.5"/>`;});
+      data.forEach((_,i)=>{s+=`<text class="gx" x="${45+i/(data.length-1)*tl}" y="${h-8}">${i+1}</text>`;});
+      s+=`</svg>`;return s;
+    }
+
+    function go(){const r=localStorage.getItem('mahjongGameData');if(!r){document.getElementById('pc').innerHTML='<div class="no-data">暂无对局数据</div>';return}
+      const u=new URLSearchParams(window.location.search);const pn=u.get('player');if(!pn){document.getElementById('pc').innerHTML='<div class="no-data">未指定选手</div>';return}
+      const d=JSON.parse(r);const pl=d.players||[];const rec=d.records||[];const cfg=d.config||{};const init=d.initialScore||0;
+      const me=pl.find(p=>p.name===pn);if(!me){document.getElementById('pc').innerHTML='<div class="no-data">未找到该选手</div>';return}
+      document.getElementById('playerTitle').textContent=`${me.avatar||'🀄'} ${pn}`;
+
+      const sorted=[...pl].sort((a,b)=>b.score-a.score);const rk=sorted.findIndex(p=>p.name===pn)+1;
+      const rev=[...rec].reverse();const tot=rev.length;
+
+      // Parse stats
+      let wins=0,zimo=0,huahu=0,natural=0,dpWin=0,loses=0;
+      const giveTo={};const takeFrom={};const myPats={};const myScores=[];const myDeltas=[];
+      const winRounds=[]; // desc for each win round
+
+      rev.forEach((r,i)=>{
+        const wn=r.desc.split(' ')[0];const isMe=wn===pn;
+        if(r.scores&&r.scores.length){
+          const ms=r.scores.find(s=>s.name===pn);if(ms) myScores.push(ms.score);
+          // delta
+          const prev=i===0?init:rev[i-1].scores.find(s=>s.name===pn)?.score||init;
+          const cur=ms?ms.score:init;myDeltas.push(cur-prev);
+        }
+        if(isMe){wins++;
+          if(r.icon==='🎯')zimo++;else if(r.icon==='🌺')huahu++;else if(r.icon==='🌟')natural++;else if(r.icon==='💥')dpWin++;
+          winRounds.push(r.desc);
+          const ws=r.desc.match(/[\u4e00-\u9fa5]{2,4}/g)||[];ws.forEach(p=>{if(PATS.includes(p))myPats[p]=(myPats[p]||0)+1});
+        }
+        if(r.icon==='💥'){const m=r.desc.match(/（(.+?)点炮）/);if(m){
+          if(m[1]===pn){loses++;giveTo[wn]=(giveTo[wn]||0)+1}
+          if(isMe)takeFrom[m[1]]=(takeFrom[m[1]]||0)+1;
+        }}
+      });
+
+      // Efficiency
+      const netEff=wins-loses;const totalPlayed=tot;
+      const winRate=tot?Math.round(wins/tot*100):0;const loseRate=tot?Math.round(loses/tot*100):0;
+      const zimoRate=wins?Math.round((zimo+huahu+natural)/wins*100):0; // self-draw % (excluding dianpao wins)
+      const dianpaoWinRate=wins?Math.round(dpWin/wins*100):0;
+
+      // Best/worst round
+      let bestDelta=0,bestDesc='',worstDelta=0,worstDesc='';
+      myDeltas.forEach((del,i)=>{if(del>bestDelta){bestDelta=del;bestDesc=rev[i]?.desc||''}if(del<worstDelta){worstDelta=del;worstDesc=rev[i]?.desc||''}});
+
+      // Opponent intel: per opponent
+      const otherPl=pl.filter(p=>p.name!==pn);
+      const oppIntel=otherPl.map(op=>{
+        const ptsFromMe=giveTo[op.name]||0;const ptsToMe=takeFrom[op.name]||0;
+        const theirWins=rev.filter(r=>r.desc.startsWith(op.name)).length;
+        const theirZimo=rev.filter(r=>r.icon==='🎯'&&r.desc.startsWith(op.name)).length;
+        const theirHuahu=rev.filter(r=>r.icon==='🌺'&&r.desc.startsWith(op.name)).length;
+        const theirNatural=rev.filter(r=>r.icon==='🌟'&&r.desc.startsWith(op.name)).length;
+        const theirDp=rev.filter(r=>r.icon==='💥'&&r.desc.startsWith(op.name)).length;
+        const theirSelfRate=theirWins?Math.round((theirZimo+theirHuahu+theirNatural)/theirWins*100):0;
+        return{...op,wins:theirWins,zimoRate:theirSelfRate,dpPts:theirDp,ptsFromMe,ptsToMe,myDp:ptsToMe};
+      });
+
+      // Style diagnosis
+      const styleTags=[];
+      if(zimoRate>=60)styleTags.push('🎯 自摸型 · 闷声发大财');
+      else if(zimoRate>=40)styleTags.push('🎯 偏自摸 · 喜欢自己来');
+      else styleTags.push('💥 偏点胡 · 广听等炮');
+      if(dianpaoWinRate>=40)styleTags.push('🕊️ 等炮型 · 耐心听牌');
+      if(loseRate>=30)styleTags.push('💀 高风险 · 放炮偏多');
+      else if(loseRate<=10&&wins>0)styleTags.push('🛡️ 铁闸型 · 防守稳固');
+      const bigPatCnt=Object.entries(myPats).filter(([k])=>['碰碰胡','清一色','七小对','开宝'].includes(k)).reduce((s,[,v])=>s+v,0);
+      const bigRate=wins?Math.round(bigPatCnt/wins*100):0;
+      if(bigRate>=40)styleTags.push('🔥 进攻型 · 追求大牌');
+
+      // Net score display
+      const sign=me.score>0?'+':''; const scoreCls=me.score>0?'color:var(--success)':me.score<0?'color:var(--danger)':'color:var(--text-primary)';
+
+      // === BUILD HTML ===
+      let html='';
+
+      // 1. 成绩卡
+      html+=`<div class="card" style="text-align:center;padding:24px"><div style="font-size:48px;margin-bottom:4px">${me.avatar||'🀄'}</div>`;
+      html+=`<div style="font-size:20px;font-weight:700">${pn}</div>`;
+      html+=`<div style="font-size:13px;color:var(--text-secondary);margin:4px 0">${MEDALS[rk-1]||''} ${LABELS[rk-1]||'第'+rk+'名'} · ${me.position}位</div>`;
+      html+=`<div style="font-size:30px;font-weight:700;${scoreCls};margin:4px 0">${sign}${me.score}</div>`;
+      html+=`</div>`;
+
+      // 2. 数据概览
+      html+=`<div class="card"><div class="card-hd">📊 我的成绩单</div><div class="sg">`;
+      html+=`<div class="si"><div class="sn" style="color:var(--primary-light)">${wins}</div><div class="sl">胡牌（${winRate}%）</div></div>`;
+      html+=`<div class="si"><div class="sn" style="color:var(--danger)">${loses}</div><div class="sl">放炮（${loseRate}%）</div></div>`;
+      html+=`<div class="si"><div class="sn" style="${netEff>0?'color:var(--success)':'color:var(--danger)'}">${netEff>0?'+':''}${netEff}</div><div class="sl">净效率</div></div>`;
+      html+=`</div><div style="text-align:center;margin-top:4px">`;
+      if(zimo>0)html+=`<span class="tag tag-off">🎯 自摸 ${zimo}</span>`;
+      if(huahu>0)html+=`<span class="tag tag-off">🌺 花胡 ${huahu}</span>`;
+      if(natural>0)html+=`<span class="tag tag-off">🌟 天/地胡 ${natural}</span>`;
+      if(dpWin>0)html+=`<span class="tag tag-win">💥 点胡 ${dpWin}</span>`;
+      html+=`</div></div>`;
+
+      // 3. 牌风诊断
+      html+=`<div class="card"><div class="card-hd">🎭 牌风诊断</div>`;
+      html+=`<div style="text-align:center;margin-bottom:12px">`;
+      styleTags.forEach(t=>html+=`<span class="tag tag-def">${t}</span>`);
+      html+=`</div><div style="font-size:13px;color:var(--text-secondary);line-height:1.6">`;
+      if(zimoRate>=50)html+=`<p>• 你偏爱<strong style="color:var(--secondary)">自摸</strong>，${zimoRate}%的胜局都是自己摸到的，不爱吃碰、闷声发大财。</p>`;
+      else html+=`<p>• 你更依赖<strong style="color:var(--danger)">点炮</strong>胡牌，只有${zimoRate}%的胜局是自摸。</p>`;
+      if(loseRate>=25)html+=`<p>• 你的<strong style="color:var(--danger)">放炮率${loseRate}%</strong>偏高，防守端需要加强。</p>`;
+      else if(loseRate<=10)html+=`<p>• 你的<strong style="color:var(--success)">放炮率仅${loseRate}%</strong>，防守非常稳健！</p>`;
+      if(bigRate>=40)html+=`<p>• 你喜欢<strong style="color:var(--danger)">做大牌</strong>（大牌率${bigRate}%），富贵险中求。</p>`;
+      else html+=`<p>• 你偏<strong style="color:var(--secondary)">求稳</strong>，不太做大牌（大牌率${bigRate}%）。</p>`;
+      html+=`</div></div>`;
+
+      // 4. 得分走势
+      if(myScores.length>=2){
+        html+=`<div class="card"><div class="card-hd">📈 得分走势</div><div class="chart-wrap">${lineSvg(myScores,pn)}</div></div>`;
+      }
+
+      // 5. 冤家分析
+      const giveSorted=Object.entries(giveTo).sort((a,b)=>b[1]-a[1]);
+      const takeSorted=Object.entries(takeFrom).sort((a,b)=>b[1]-a[1]);
+      if(giveSorted.length>0||takeSorted.length>0){
+        html+=`<div class="card"><div class="card-hd">🗡️ 我的冤家</div>`;
+        if(giveSorted.length>0){
+          const g0=giveSorted[0];const g0pl=pl.find(p=>p.name===g0[0]);
+          html+=`<div class="rival"><div class="rival-av">🔴</div><div class="rival-info"><div class="rival-name">克星：${g0[0]}</div><div class="rival-sub">你放炮给他 ${g0[1]} 次</div></div><div class="rival-val bad">${g0[1]}x</div></div>`;
+        }
+        if(giveSorted.length>1){
+          giveSorted.slice(1).forEach(g=>{
+            const gpl=pl.find(p=>p.name===g[0]);
+            html+=`<div class="rival"><div class="rival-av">${gpl?.avatar||'🀄'}</div><div class="rival-info"><div class="rival-name">${g[0]}</div><div class="rival-sub">你放炮给他 ${g[1]} 次</div></div><div class="rival-val bad">${g[1]}x</div></div>`;
+          });
+        }
+        if(takeSorted.length>0){
+          const t0=takeSorted[0];const t0pl=pl.find(p=>p.name===t0[0]);
+          html+=`<div class="rival" style="margin-top:10px"><div class="rival-av">🟢</div><div class="rival-info"><div class="rival-name">提款机：${t0[0]}</div><div class="rival-sub">他放炮给你 ${t0[1]} 次</div></div><div class="rival-val good">${t0[1]}x</div></div>`;
+          takeSorted.slice(1).forEach(t=>{
+            const tpl=pl.find(p=>p.name===t[0]);
+            html+=`<div class="rival"><div class="rival-av">${tpl?.avatar||'🀄'}</div><div class="rival-info"><div class="rival-name">${t[0]}</div><div class="rival-sub">他放炮给你 ${t[1]} 次</div></div><div class="rival-val good">${t[1]}x</div></div>`;
+          });
+        }
+        html+=`</div>`;
+      }
+
+      // 6. 高光 & 至暗
+      if(bestDesc||worstDesc){
+        html+=`<div class="card"><div class="card-hd">⚡ 高光 & 至暗</div>`;
+        if(bestDesc){html+=`<div class="moment high"><div class="moment-icon">🏆</div><div class="moment-desc">${bestDesc}</div><div class="moment-sub">本局净赚 +${bestDelta}</div></div>`}
+        if(worstDesc){html+=`<div class="moment low"><div class="moment-icon">💀</div><div class="moment-desc">${worstDesc}</div><div class="moment-sub">本局净亏 ${worstDelta}</div></div>`}
+        html+=`</div>`;
+      }
+
+      // 7. 牌型偏好
+      const patBars=Object.entries(myPats).sort((a,b)=>b[1]-a[1]).map(([k,v])=>({label:k,val:v}));
+      if(patBars.length>0)html+=`<div class="card"><div class="card-hd">🀄 我的胡牌牌型</div><div class="chart-wrap">${hBar(patBars,{h:patBars.length*34+20,colors:['#4ECDC4','#51CF66','#FFD700','#D4537E','#378ADD','#BA7517']})}</div></div>`;
+
+      // 8. 对手情报
+      if(oppIntel.length>0){
+        html+=`<div class="card"><div class="card-hd">🕵️ 对手情报</div>`;
+        oppIntel.forEach(op=>{
+          const tags=[];
+          if(op.zimoRate>=60)tags.push('🎯 爱自摸');
+          if(op.dpPts>0)tags.push('💥 放炮型');
+          if(op.ptsToMe>0)tags.push(`🎯 点你${op.ptsToMe}次`);
+          if(op.ptsFromMe>0)tags.push(`🔴 被你点${op.ptsFromMe}次`);
+          html+=`<div class="intel"><div class="intel-av">${op.avatar||'🀄'}</div>`;
+          html+=`<div class="intel-info"><div class="intel-title">${op.name}</div>`;
+          html+=`<div class="intel-sub">${op.wins}局胜 · ${op.zimoRate}%自摸率 · ${op.dpPts}次放炮</div>`;
+          if(tags.length>0)html+=`<div class="intel-tags">${tags.map(t=>`<span class="tag tag-def" style="font-size:11px;padding:2px 8px">${t}</span>`).join('')}</div>`;
+          html+=`</div></div>`;
+        });
+        html+=`</div>`;
+      }
+
+      document.getElementById('pc').innerHTML=html;
+    }
+    document.addEventListener('DOMContentLoaded',()=>setTimeout(go,600));
+  </script>
+</body>
+</html>

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>上海敲麻 - 对局总结</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    :root {
+      --primary: #FF6B35; --primary-light: #FF8F66; --secondary: #4ECDC4;
+      --success: #51CF66; --danger: #FF6B6B; --bg-dark: #0D1117;
+      --bg-card: #161B22; --text-primary: #FFFFFF; --text-secondary: #8B949E;
+      --border: #30363D;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      background: var(--bg-dark); color: var(--text-primary); min-height: 100vh; padding-bottom: 100px;
+    }
+    .header {
+      background: linear-gradient(180deg, #1a1f2e 0%, var(--bg-dark) 100%);
+      padding: 24px 16px 32px; text-align: center;
+    }
+    .header-title { font-size: 20px; font-weight: 700; }
+    .header-subtitle { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+    .container { padding: 16px; max-width: 500px; margin: 0 auto; }
+
+    .card {
+      background: var(--bg-card); border-radius: 16px; padding: 20px;
+      margin-bottom: 16px; border: 1px solid var(--border);
+    }
+    .card-header {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 15px; font-weight: 600; margin-bottom: 16px;
+      padding-bottom: 12px; border-bottom: 1px solid var(--border);
+    }
+
+    /* 排名 */
+    .rank-list { display: flex; flex-direction: column; gap: 10px; }
+    .rank-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 16px; border-radius: 12px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      transition: all 0.2s;
+    }
+    .rank-item:first-child {
+      background: linear-gradient(135deg, rgba(255,215,0,0.12), rgba(255,215,0,0.05));
+      border-color: rgba(255,215,0,0.3);
+    }
+    .rank-badge {
+      font-size: 20px; width: 36px; text-align: center; flex-shrink: 0;
+    }
+    .rank-avatar { font-size: 28px; flex-shrink: 0; }
+    .rank-info { flex: 1; min-width: 0; }
+    .rank-name { font-size: 15px; font-weight: 600; }
+    .rank-position { font-size: 12px; color: var(--text-secondary); }
+    .rank-score { font-size: 20px; font-weight: 700; flex-shrink: 0; }
+    .rank-score.positive { color: var(--success); }
+    .rank-score.negative { color: var(--danger); }
+    .rank-score.zero { color: var(--text-primary); }
+
+    /* 规则摘要 */
+    .config-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
+    }
+    .config-item { text-align: center; }
+    .config-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
+    .config-value { font-size: 16px; font-weight: 600; color: var(--primary-light); }
+
+    /* 记录 */
+    .record-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 0; border-bottom: 1px solid var(--border);
+    }
+    .record-item:last-child { border-bottom: none; }
+    .record-icon { font-size: 18px; flex-shrink: 0; }
+    .record-content { flex: 1; min-width: 0; }
+    .record-desc { font-size: 14px; }
+    .record-time { font-size: 12px; color: var(--text-secondary); }
+    .no-records { text-align: center; color: var(--text-secondary); padding: 24px 0; font-size: 14px; }
+
+    /* 底部按钮 */
+    .bottom-actions {
+      position: fixed; bottom: 0; left: 0; right: 0; padding: 16px;
+      padding-bottom: calc(16px + env(safe-area-inset-bottom));
+      background: linear-gradient(180deg, transparent 0%, var(--bg-dark) 30%);
+    }
+    .restart-btn {
+      width: 100%; height: 52px; border-radius: 26px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      border: none; color: white; font-size: 17px; font-weight: 600; cursor: pointer;
+      box-shadow: 0 4px 20px rgba(255,107,53,0.4); transition: all 0.2s;
+    }
+    .restart-btn:active { transform: scale(0.98); }
+    @media (min-width: 700px) {
+      .container { max-width: 640px; padding: 24px; }
+      body { background: linear-gradient(135deg, #0a0e14 0%, #161B22 100%); }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <h1 class="header-title">🏁 对局总结</h1>
+    <p class="header-subtitle">上海敲麻-好友局</p>
+  </header>
+
+  <main class="container">
+    <!-- 排名 -->
+    <div class="card">
+      <div class="card-header">🏆 最终排名</div>
+      <div class="rank-list" id="rankList"></div>
+    </div>
+
+    <!-- 游戏设置 -->
+    <div class="card">
+      <div class="card-header">⚙️ 游戏设置</div>
+      <div class="config-grid" id="configGrid"></div>
+    </div>
+
+    <!-- 记分记录 -->
+    <div class="card">
+      <div class="card-header">📝 记分记录</div>
+      <div id="recordsList"></div>
+    </div>
+  </main>
+
+  <div class="bottom-actions">
+    <button class="restart-btn" onclick="goToAISummary()">📊 分析与总结</button>
+  </div>
+
+  <script>
+    const RANK_ICONS = ['🥇', '🥈', '🥉', '4️⃣'];
+
+    function loadGameData() {
+      const raw = localStorage.getItem('mahjongGameData');
+      if (!raw) {
+        document.getElementById('rankList').innerHTML = '<div class="no-records">暂无对局数据</div>';
+        return;
+      }
+
+      const data = JSON.parse(raw);
+
+      // 排名
+      const sorted = [...data.players].sort((a, b) => b.score - a.score);
+      const rankList = document.getElementById('rankList');
+      rankList.innerHTML = '';
+      sorted.forEach((p, i) => {
+        const item = document.createElement('div');
+        item.className = 'rank-item';
+        let scoreClass = 'zero';
+        if (p.score > 0) scoreClass = 'positive';
+        else if (p.score < 0) scoreClass = 'negative';
+        item.innerHTML = `
+          <div class="rank-badge">${RANK_ICONS[i] || '🏅'}</div>
+          <div class="rank-avatar">${p.avatar}</div>
+          <div class="rank-info">
+            <div class="rank-name">${p.name}</div>
+            <div class="rank-position">${p.position}位</div>
+          </div>
+          <div class="rank-score ${scoreClass}">${p.score > 0 ? '+' : ''}${p.score}</div>
+        `;
+        rankList.appendChild(item);
+      });
+
+      // 游戏设置
+      const cfg = data.config;
+      document.getElementById('configGrid').innerHTML = `
+        <div class="config-item"><div class="config-label">底</div><div class="config-value">${cfg.base}</div></div>
+        <div class="config-item"><div class="config-label">全场倍数</div><div class="config-value">${cfg.multiplier}倍</div></div>
+        <div class="config-item"><div class="config-label">普通封顶</div><div class="config-value">${cfg.ceilingNormal}分</div></div>
+        <div class="config-item"><div class="config-label">开宝封顶</div><div class="config-value">${cfg.ceilingNormal * cfg.ceilingKaibaoMultiplier}分</div></div>
+      `;
+
+      // 记分记录
+      const recordsList = document.getElementById('recordsList');
+      if (data.records && data.records.length > 0) {
+        recordsList.innerHTML = '';
+        data.records.forEach(r => {
+          const item = document.createElement('div');
+          item.className = 'record-item';
+          item.innerHTML = `
+            <div class="record-icon">${r.icon}</div>
+            <div class="record-content">
+              <div class="record-desc">${r.desc}</div>
+              <div class="record-time">${r.time}</div>
+            </div>
+          `;
+          recordsList.appendChild(item);
+        });
+      } else {
+        recordsList.innerHTML = '<div class="no-records">暂无记录</div>';
+      }
+    }
+
+    function goToAISummary() {
+      window.location.href = 'mahjong-ai-summary.html';
+    }
+
+    document.addEventListener('DOMContentLoaded', loadGameData);
+  </script>
+</body>
+</html>
