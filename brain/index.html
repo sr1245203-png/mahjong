@@ -318,6 +318,14 @@
       transform: scale(0.98);
     }
 
+    .resume-btn {
+      width: 100%; padding: 14px; border-radius: 14px;
+      background: linear-gradient(135deg, #4ECDC4, #3DBDB5);
+      border: none; color: white; font-size: 15px;
+      font-weight: 600; cursor: pointer; font-family: inherit;
+    }
+    .resume-btn:active { transform: scale(0.96); }
+
     /* Toast */
     .toast {
       position: fixed;
@@ -436,6 +444,13 @@
       <button class="start-btn" id="startBtn" onclick="goToCreateRoom()">
         🎲 开始创建房间
       </button>
+
+      <!-- 恢复上一局 -->
+      <div id="resumeBar" style="display:none;margin-top:12px;">
+        <button class="resume-btn" onclick="resumeGame()">
+          🔄 继续上一局
+        </button>
+      </div>
     </div>
   </main>
 
@@ -587,8 +602,42 @@
       }, 1000);
     }
 
+    // 检查是否有未完成的对局
+    function checkSavedSession() {
+      const raw = localStorage.getItem('mahjongLiveSession');
+      if (!raw) return;
+      try {
+        const session = JSON.parse(raw);
+        if (session && session.players && session.records && session.players.length >= 2) {
+          document.getElementById('resumeBar').style.display = 'block';
+        }
+      } catch(e) {}
+    }
+
+    function resumeGame() {
+      // 恢复对局：直接跳转记分页（不显示密码/等待室，因为数据已有）
+      // 需要构建 names 和 avatars 参数
+      const raw = localStorage.getItem('mahjongLiveSession');
+      if (!raw) return;
+      const session = JSON.parse(raw);
+      const names = session.players.map(p => p.name).join(',');
+      const avatars = session.players.map(p => p.avatar).join(',');
+      const cfg = session.config || {};
+      const url = 'mahjong-game-score.html'
+        + '?names=' + encodeURIComponent(names)
+        + '&avatars=' + encodeURIComponent(avatars)
+        + '&base=' + (cfg.base || 1)
+        + '&multiplier=' + (cfg.multiplier || 1)
+        + '&ceilingNormal=' + (cfg.ceilingNormal || 50)
+        + '&score=' + (session.initialScore || 0);
+      window.location.href = url;
+    }
+
     // 页面加载时初始化
-    document.addEventListener('DOMContentLoaded', initSelectors);
+    document.addEventListener('DOMContentLoaded', function() {
+      initSelectors();
+      checkSavedSession();
+    });
   </script>
 </body>
 </html>
