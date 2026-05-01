@@ -1,7 +1,1 @@
-# WorkBuddy 内部文件
-.workbuddy/
-
-# 临时文件
-*.log
-.DS_Store
-Thumbs.db
+*~$
