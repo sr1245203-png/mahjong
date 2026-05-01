@@ -800,7 +800,20 @@
       renderPatternButtons();
       updateDianpaoSection();
       updateConfirmBtn();
-      // 语音识别按需初始化，不在 init 里预创建
+      initSpeechRecognition();
+      // 预先请求麦克风权限（不影响语音同步启动）
+      preRequestMic();
+    }
+
+    // ========== 预先请求麦克风权限 ==========
+    function preRequestMic() {
+      if (_micGranted || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(function(stream) {
+          stream.getTracks().forEach(track => track.stop());
+          _micGranted = true;
+        })
+        .catch(function() {});
     }
 
     // ========== 从 URL 参数读取玩家信息 ==========
@@ -1635,8 +1648,8 @@
 
     function requestMicPermission(callback) {
       if (_micGranted) { callback(true); return; }
+      // 如果还没授权，走异步 getusermedia
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        document.getElementById('voiceStatus').textContent = '🎙️ 正在录音...';
         callback(true);
         return;
       }
@@ -1670,16 +1683,35 @@
       if (isListening) {
         document.getElementById('voiceStatus').textContent = '⏳ 识别中...';
         try { recognition && recognition.stop(); } catch(e) {}
-        recStop(); // 立即重置 UI，onend 收到后由于 isListening=false 不会再触发
+        recStop(); // 立即重置 UI
       } else {
-        // 先请求麦克风权限（会触发浏览器的权限弹窗）
-        requestMicPermission(function(granted) {
-          if (!granted) return;
-          try { recognition && recognition.abort(); } catch(e) {}
-          initSpeechRecognition();
-          _gotResult = false;
-          try {
-            recognition.start();
+        if (!_micGranted) {
+          // 第一次：走异步 getUserMedia 请求权限
+          requestMicPermission(function(granted) {
+            if (!granted) return;
+            startVoiceSync();
+          });
+        } else {
+          // 已授权 → 同步启动（Android Chrome 要求用户点击事件内同步调用）
+          startVoiceSync();
+        }
+      }
+    }
+
+    function startVoiceSync() {
+      try { recognition && recognition.abort(); } catch(e) {}
+      initSpeechRecognition();
+      _gotResult = false;
+      try {
+        recognition.start();
+        isListening = true;
+        document.getElementById('voiceBtn').classList.add('recording');
+        document.getElementById('voiceBtnText').textContent = '🔴 结束录音';
+        document.getElementById('voiceStatus').textContent = '🎙️ 录音中...';
+      } catch(e) {
+        document.getElementById('voiceStatus').textContent = '❌ 启动失败，请重试';
+      }
+    }
             isListening = true;
             document.getElementById('voiceBtn').classList.add('recording');
             document.getElementById('voiceBtnText').textContent = '🔴 结束录音';
