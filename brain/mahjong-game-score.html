@@ -801,19 +801,6 @@
       updateDianpaoSection();
       updateConfirmBtn();
       initSpeechRecognition();
-      // 预先请求麦克风权限（不影响语音同步启动）
-      preRequestMic();
-    }
-
-    // ========== 预先请求麦克风权限 ==========
-    function preRequestMic() {
-      if (_micGranted || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
-      navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(function(stream) {
-          stream.getTracks().forEach(track => track.stop());
-          _micGranted = true;
-        })
-        .catch(function() {});
     }
 
     // ========== 从 URL 参数读取玩家信息 ==========
@@ -1380,9 +1367,6 @@
       state.round++;
       document.getElementById('roundText').textContent = `第${state.round}局`;
 
-      // 自动保存当前对局（防止误关页面）
-      saveCurrentSession();
-
       resetSelection();
 
       showToast(`记分成功！已进入第${state.round}局`);
@@ -1448,107 +1432,8 @@
       }
     }
 
-    // ========== 自动保存当前对局（每局记分后） ==========
-    function saveCurrentSession() {
-      const sessionData = {
-        timestamp: Date.now(),
-        round: state.round,
-        lastScoreRound: state.lastScoreRound,
-        isKaibao: state.isKaibao || false,
-        initialScore: gameConfig.initialScore || 0,
-        players: players.map(p => ({
-          name: p.name,
-          avatar: p.avatar,
-          score: p.score,
-          position: p.position,
-        })),
-        records: records.map(r => ({
-          icon: r.icon,
-          desc: r.desc,
-          time: r.time,
-          scores: r.scores ? r.scores.map(s => ({ name: s.name, score: s.score, avatar: s.avatar })) : undefined,
-        })),
-        config: {
-          base: gameConfig.base,
-          multiplier: gameConfig.multiplier,
-          ceilingNormal: gameConfig.ceilingNormal,
-          ceilingKaibaoMultiplier: gameConfig.ceilingKaibaoMultiplier,
-        },
-      };
-      localStorage.setItem('mahjongLiveSession', JSON.stringify(sessionData));
-    }
-
-    // ========== 检查是否有未完成的对局 ==========
-    function checkSession() {
-      const raw = localStorage.getItem('mahjongLiveSession');
-      if (!raw) return;
-      const session = JSON.parse(raw);
-      if (!session || !session.players || !session.records) {
-        localStorage.removeItem('mahjongLiveSession');
-        return;
-      }
-      // 显示恢复提示
-      const overlay = document.createElement('div');
-      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:9999;';
-      overlay.innerHTML = `
-        <div style="background:#1c2333;border-radius:20px;padding:30px;max-width:340px;text-align:center;border:1px solid #30363D;margin:16px;">
-          <div style="font-size:28px;margin-bottom:10px;">🔄</div>
-          <div style="font-size:17px;font-weight:600;color:#fff;margin-bottom:6px;">发现未完成的对局</div>
-          <div style="font-size:13px;color:#8B949E;margin-bottom:6px;">
-            第${session.round}局 · ${session.players.map(p=>p.name).join(' ')}
-          </div>
-          <div style="font-size:12px;color:#8B949E;margin-bottom:20px;">
-            保存于 ${new Date(session.timestamp).toLocaleString('zh-CN')}
-          </div>
-          <div style="display:flex;gap:10px;">
-            <button id="resumeDiscard" style="flex:1;padding:12px;border-radius:12px;background:transparent;border:1px solid #30363D;color:#8B949E;font-size:14px;cursor:pointer;font-family:inherit;">放弃</button>
-            <button id="resumeConfirm" style="flex:1;padding:12px;border-radius:12px;background:linear-gradient(135deg,#FF6B35,#FF8F66);border:none;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">恢复对局</button>
-          </div>
-        </div>
-      `;
-      document.body.appendChild(overlay);
-
-      document.getElementById('resumeConfirm').onclick = () => {
-        overlay.remove();
-        restoreSession(session);
-      };
-      document.getElementById('resumeDiscard').onclick = () => {
-        overlay.remove();
-        localStorage.removeItem('mahjongLiveSession');
-      };
-    }
-
-    function restoreSession(session) {
-      // 恢复玩家数据
-      session.players.forEach((sp, i) => {
-        if (players[i]) {
-          players[i].name = sp.name;
-          players[i].avatar = sp.avatar;
-          players[i].score = sp.score;
-          players[i].position = sp.position;
-        }
-      });
-
-      // 清空并恢复记录
-      records.length = 0;
-      session.records.forEach(r => records.push(r));
-
-      // 恢复状态
-      state.round = session.round;
-      state.lastScoreRound = session.lastScoreRound;
-      state.isKaibao = session.isKaibao;
-      gameConfig.initialScore = session.initialScore;
-
-      // 更新UI
-      document.getElementById('roundText').textContent = `第${state.round}局`;
-      renderPlayers();
-      renderRecords();
-      resetSelection();
-      showToast('已恢复对局数据');
-    }
-
     function confirmEndGame() {
-      // 保存完整对局数据到 localStorage
+      // 保存游戏数据到 localStorage
       const gameData = {
         timestamp: new Date().toISOString(),
         initialScore: gameConfig.initialScore || 0,
@@ -1572,7 +1457,6 @@
         },
       };
       localStorage.setItem('mahjongGameData', JSON.stringify(gameData));
-      localStorage.removeItem('mahjongLiveSession'); // 对局结束，清除自动保存
       window.location.href = 'mahjong-game-summary.html';
     }
 
@@ -1619,11 +1503,8 @@
       recognition.onerror = function(event) {
         const code = event.error || 'unknown';
         let msg = `❌ 语音出错（${code}）`;
-        if (code === 'not-allowed') {
-          msg = '⚠️ 请允许麦克风权限（浏览器地址栏左侧🔒→麦克风→允许），刷新重试';
-        } else if (code === 'service-not-allowed') {
-          msg = '⚠️ 浏览器语音服务被禁用，请用 Chrome 浏览器、检查网络，或在设置中开启语音输入';
-        } else if (code === 'no-speech') msg = '未检测到语音，请点击录音后说话';
+        if (code === 'not-allowed') msg = '⚠️ 请允许麦克风权限，然后刷新页面重试';
+        else if (code === 'no-speech') msg = '未检测到语音，请点击录音后说话';
         else if (code === 'network') msg = '网络错误，请检查网络后重试';
         else if (code === 'aborted') return; // 用户手动停止，不显示错误
         document.getElementById('voiceStatus').textContent = msg;
@@ -1648,8 +1529,8 @@
 
     function requestMicPermission(callback) {
       if (_micGranted) { callback(true); return; }
-      // 如果还没授权，走异步 getusermedia
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        document.getElementById('voiceStatus').textContent = '🎙️ 正在录音...';
         callback(true);
         return;
       }
@@ -1683,35 +1564,16 @@
       if (isListening) {
         document.getElementById('voiceStatus').textContent = '⏳ 识别中...';
         try { recognition && recognition.stop(); } catch(e) {}
-        recStop(); // 立即重置 UI
+        recStop(); // 立即重置 UI，onend 收到后由于 isListening=false 不会再触发
       } else {
-        if (!_micGranted) {
-          // 第一次：走异步 getUserMedia 请求权限
-          requestMicPermission(function(granted) {
-            if (!granted) return;
-            startVoiceSync();
-          });
-        } else {
-          // 已授权 → 同步启动（Android Chrome 要求用户点击事件内同步调用）
-          startVoiceSync();
-        }
-      }
-    }
-
-    function startVoiceSync() {
-      try { recognition && recognition.abort(); } catch(e) {}
-      initSpeechRecognition();
-      _gotResult = false;
-      try {
-        recognition.start();
-        isListening = true;
-        document.getElementById('voiceBtn').classList.add('recording');
-        document.getElementById('voiceBtnText').textContent = '🔴 结束录音';
-        document.getElementById('voiceStatus').textContent = '🎙️ 录音中...';
-      } catch(e) {
-        document.getElementById('voiceStatus').textContent = '❌ 启动失败，请重试';
-      }
-    }
+        // 先请求麦克风权限（会触发浏览器的权限弹窗）
+        requestMicPermission(function(granted) {
+          if (!granted) return;
+          try { recognition && recognition.abort(); } catch(e) {}
+          initSpeechRecognition();
+          _gotResult = false;
+          try {
+            recognition.start();
             isListening = true;
             document.getElementById('voiceBtn').classList.add('recording');
             document.getElementById('voiceBtnText').textContent = '🔴 结束录音';
@@ -1904,10 +1766,7 @@
     }
 
     // 页面加载
-    document.addEventListener('DOMContentLoaded', function() {
-      init();
-      checkSession();
-    });
+    document.addEventListener('DOMContentLoaded', init);
   </script>
 </body>
 </html>
