@@ -741,6 +741,7 @@
     let recognition = null;
     let isListening = false;
     let _gotResult = false;
+    let _micGranted = false;  // 是否已获得麦克风权限
 
     // ========== 初始化 ==========
     function init() {
@@ -1527,8 +1528,8 @@
     }
 
     function requestMicPermission(callback) {
+      if (_micGranted) { callback(true); return; }
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        // 无法主动请求权限，直接尝试语音识别
         document.getElementById('voiceStatus').textContent = '🎙️ 正在录音...';
         callback(true);
         return;
@@ -1537,6 +1538,7 @@
       navigator.mediaDevices.getUserMedia({ audio: true })
         .then(function(stream) {
           stream.getTracks().forEach(track => track.stop());
+          _micGranted = true;
           document.getElementById('voiceStatus').textContent = '✅ 麦克风已授权';
           callback(true);
         })
@@ -1569,6 +1571,7 @@
           if (!granted) return;
           try { recognition && recognition.abort(); } catch(e) {}
           initSpeechRecognition();
+          _gotResult = false;
           try {
             recognition.start();
             isListening = true;
