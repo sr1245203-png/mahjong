@@ -800,7 +800,7 @@
       renderPatternButtons();
       updateDianpaoSection();
       updateConfirmBtn();
-      initSpeechRecognition();
+      // 语音识别按需初始化，不在 init 里预创建
     }
 
     // ========== 从 URL 参数读取玩家信息 ==========
@@ -1606,8 +1606,11 @@
       recognition.onerror = function(event) {
         const code = event.error || 'unknown';
         let msg = `❌ 语音出错（${code}）`;
-        if (code === 'not-allowed') msg = '⚠️ 请允许麦克风权限，然后刷新页面重试';
-        else if (code === 'no-speech') msg = '未检测到语音，请点击录音后说话';
+        if (code === 'not-allowed') {
+          msg = '⚠️ 请允许麦克风权限（浏览器地址栏左侧🔒→麦克风→允许），刷新重试';
+        } else if (code === 'service-not-allowed') {
+          msg = '⚠️ 浏览器语音服务被禁用，请用 Chrome 浏览器、检查网络，或在设置中开启语音输入';
+        } else if (code === 'no-speech') msg = '未检测到语音，请点击录音后说话';
         else if (code === 'network') msg = '网络错误，请检查网络后重试';
         else if (code === 'aborted') return; // 用户手动停止，不显示错误
         document.getElementById('voiceStatus').textContent = msg;
